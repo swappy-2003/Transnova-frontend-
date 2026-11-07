@@ -4,6 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../config/theme.dart';
 
+/// E-Wallet Balance Card
+///
+/// This widget renders the main floating card on the dashboard:
+/// 1. "Total Balance" with privacy eye toggle (hide/show balance).
+/// 2. Live "Polygon Amoy" blockchain network indicator badge.
+/// 3. Huge formatted USDC balance (e.g. $1,250.00 USDC).
+/// 4. Circle Smart Contract Account (SCA) address chip with one-tap copy button.
+/// 5. Row of 4 primary action buttons:
+///    - Send (Transfer)
+///    - Top Up (Buy)
+///    - Withdraw (Cash Out)
+///    - Receive (QR Code Modal)
 class BalanceCard extends StatefulWidget {
   final double usdcBalance;
   final String walletAddress;
@@ -31,14 +43,17 @@ class BalanceCard extends StatefulWidget {
 }
 
 class _BalanceCardState extends State<BalanceCard> {
+  // Toggle to hide or show balance for privacy in public spaces
   bool _hideBalance = false;
 
+  /// Helper to shorten EVM addresses: e.g. 0x71C834...392A
   String _formatAddress(String addr) {
     if (addr.isEmpty) return '0x71C8...392A';
     if (addr.length < 12) return addr;
     return '${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}';
   }
 
+  /// Copies full blockchain address to phone clipboard and shows visual toast
   void _copyAddress(BuildContext context) {
     final addr = widget.walletAddress.isNotEmpty
         ? widget.walletAddress
@@ -61,6 +76,7 @@ class _BalanceCardState extends State<BalanceCard> {
     );
   }
 
+  /// Reusable builder for the 4 circular squircle action buttons below the card
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -122,7 +138,7 @@ class _BalanceCardState extends State<BalanceCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top section with balance
+          // Top section: Balance + Address chip + Network pill
           Padding(
             padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
             child: Column(
@@ -152,7 +168,7 @@ class _BalanceCardState extends State<BalanceCard> {
                         ),
                       ],
                     ),
-                    // Network Badge
+                    // Polygon Amoy Status Pill
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -185,6 +201,7 @@ class _BalanceCardState extends State<BalanceCard> {
                   ],
                 ),
                 const SizedBox(height: 10),
+                // Formatted Amount
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -217,7 +234,7 @@ class _BalanceCardState extends State<BalanceCard> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                // Circle Smart Account Address Chip
+                // Circle Smart Contract Account Address Chip
                 GestureDetector(
                   onTap: () => _copyAddress(context),
                   child: Container(
@@ -250,7 +267,7 @@ class _BalanceCardState extends State<BalanceCard> {
             ),
           ),
           const Divider(height: 1, thickness: 1, color: AppTheme.divider),
-          // Action Buttons row
+          // Action Buttons: Send, Top Up, Withdraw, Receive
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(

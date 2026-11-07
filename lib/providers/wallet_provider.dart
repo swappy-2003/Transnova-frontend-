@@ -2,6 +2,13 @@ import 'package:flutter/foundation.dart';
 import '../models/wallet_model.dart';
 import '../services/wallet_service.dart';
 
+/// Circle Wallet State Provider
+///
+/// This provider is responsible for:
+/// - Auto-provisioning the user's Circle Developer-Controlled Smart Contract Account (SCA) on Polygon Amoy.
+/// - Querying and updating real-time on-chain token balances (USDC).
+/// - Validating blockchain destination addresses before initiating transfers.
+/// - Providing fallback sandbox demo wallet state when offline so UI stays responsive.
 class WalletProvider extends ChangeNotifier {
   final WalletService _walletService = WalletService();
 
@@ -9,25 +16,33 @@ class WalletProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Convenient getters for UI components
   WalletModel? get wallet => _wallet;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  /// Returns the current USDC balance or 0.00
   double get usdcBalance => _wallet?.usdcBalance ?? 0.0;
+
+  /// Returns the user's Polygon Amoy Smart Contract Account (SCA) address
   String get address => _wallet?.effectiveAddress ?? '';
+
+  /// Returns the internal Circle wallet UUID
   String get walletId => _wallet?.effectiveWalletId ?? '';
 
-  /// Provision or fetch existing Circle wallet
+  /// Provision a new Circle developer-controlled wallet or fetch the user's existing wallet.
   Future<void> initWallet() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
+      // Calls POST /api/v1/wallets/circle on the backend
       _wallet = await _walletService.createOrGetCircleWallet();
       await refreshBalance();
     } catch (e) {
       debugPrint('Circle wallet initialization fallback: $e');
+      // If Circle API is rate-limited or DB is offline, instantiate demo SCA wallet so user can test UI
       _wallet ??= WalletModel(
         id: 'circle_demo_sca_1',
         userId: 'demo_user_uid',
@@ -50,7 +65,7 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  /// Refresh token balances from Circle SDK
+  /// Polls Circle SDK via /api/v1/wallets/:id/balance for the latest USDC balance.
   Future<void> refreshBalance() async {
     if (_wallet == null) return;
 
@@ -70,7 +85,7 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
-  /// Validate destination address
+  /// Validates whether an address is a valid EVM/Polygon address using Circle SDK
   Future<bool> validateAddress(String address) async {
     try {
       return await _walletService.validateAddress(address);
@@ -79,10 +94,10 @@ class WalletProvider extends ChangeNotifier {
     }
   }
 
+  /// Reset wallet state on user logout
   void clear() {
     _wallet = null;
     _errorMessage = null;
     notifyListeners();
   }
 }
-

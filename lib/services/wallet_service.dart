@@ -3,10 +3,15 @@ import '../config/api_config.dart';
 import '../models/wallet_model.dart';
 import 'api_client.dart';
 
+/// Circle Wallet Service
+///
+/// Communicates with backend endpoints to manage Circle Developer-Controlled
+/// Smart Contract Accounts (SCA) deployed on Polygon Amoy.
 class WalletService {
   final ApiClient _client = ApiClient();
 
-  /// Create or get existing Circle developer-controlled wallet
+  /// Creates a new Smart Contract Account (SCA) on Polygon Amoy for the user,
+  /// or returns their existing wallet if one was already provisioned.
   Future<WalletModel> createOrGetCircleWallet({
     String blockchain = 'MATIC-AMOY',
     String accountType = 'SCA',
@@ -27,7 +32,7 @@ class WalletService {
     }
   }
 
-  /// Get wallet token balance from Circle
+  /// Queries the Circle Developer-Controlled Wallets API for real-time USDC balances.
   Future<Map<String, dynamic>> getWalletBalance(String walletId) async {
     try {
       final response = await _client.dio.get(ApiConfig.walletBalance(walletId));
@@ -48,7 +53,7 @@ class WalletService {
     }
   }
 
-  /// Validate destination address on blockchain
+  /// Checks if a given Ethereum/Polygon address string is valid on-chain.
   Future<bool> validateAddress(String address, {String blockchain = 'MATIC-AMOY'}) async {
     try {
       final response = await _client.dio.post(
@@ -60,9 +65,8 @@ class WalletService {
       );
 
       return response.data['isValid'] == true;
-    } on DioException catch (e) {
-      throw e.error ?? 'Address validation failed';
+    } on DioException {
+      return false;
     }
   }
 }
-

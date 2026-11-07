@@ -3,6 +3,13 @@ import '../models/fee_estimate_model.dart';
 import '../models/transaction_model.dart';
 import '../services/transaction_service.dart';
 
+/// Transactions State Provider
+///
+/// This provider is responsible for:
+/// - Fetching and storing user transaction history (transfers, deposits, cash-outs).
+/// - Estimating Circle gas fees across multiple speed tiers (low, medium, high).
+/// - Initiating on-chain Circle USDC transfers.
+/// - Providing instant testnet sandbox simulations so users can test transfers without gas.
 class TransactionProvider extends ChangeNotifier {
   final TransactionService _transactionService = TransactionService();
 
@@ -11,12 +18,14 @@ class TransactionProvider extends ChangeNotifier {
   String? _errorMessage;
   FeeEstimateModel? _feeEstimate;
 
+  // Getters for UI access
   List<TransactionModel> get transactions => _transactions;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   FeeEstimateModel? get feeEstimate => _feeEstimate;
 
-  /// Fetch user transactions
+  /// Fetches recent transactions from /api/v1/transactions.
+  /// If the database is empty or offline during dev, supplies realistic mock items.
   Future<void> fetchTransactions() async {
     _isLoading = true;
     _errorMessage = null;
@@ -40,7 +49,7 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  /// Estimate transfer gas fee
+  /// Calculates estimated Polygon Amoy blockchain gas fees before transferring
   Future<FeeEstimateModel?> estimateFee({
     required String walletId,
     required String destinationAddress,
@@ -61,7 +70,7 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  /// Execute Circle USDC transfer
+  /// Executes an on-chain transfer of USDC via Circle Developer-Controlled Wallets
   Future<TransactionModel> sendCircleTransfer({
     required String walletId,
     required String destinationAddress,
@@ -78,6 +87,7 @@ class TransactionProvider extends ChangeNotifier {
         destinationAddress: destinationAddress,
         amount: amount,
       );
+      // Prepend newly created transaction to top of history list
       _transactions.insert(0, tx);
       _isLoading = false;
       notifyListeners();
@@ -90,7 +100,7 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  /// Simulate transfer
+  /// Instant Sandbox simulation (used for fast testing without needing real gas)
   Future<TransactionModel> simulateTransaction({
     required String type,
     required double amount,
@@ -120,6 +130,7 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
+  /// Clears state when user logs out
   void clear() {
     _transactions = [];
     _feeEstimate = null;
@@ -127,6 +138,7 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// High-fidelity demo transactions matching the Figma design
   List<TransactionModel> _getMockTransactions() {
     return [
       TransactionModel(

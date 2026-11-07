@@ -3,6 +3,14 @@ import '../models/user_model.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 
+/// Authentication State Provider
+///
+/// This provider is responsible for:
+/// - Storing the current logged-in user profile (`UserModel`).
+/// - Managing the user login and registration state.
+/// - Providing a quick one-tap Demo Mode login that bypasses external Firebase latency.
+/// - Validating existing login sessions when the app opens from the splash screen.
+/// - Handling user logout and session cleanup.
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
   final ApiClient _apiClient = ApiClient();
@@ -11,22 +19,27 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Getters to read auth state from UI screens
   UserModel? get user => _user;
   bool get isAuthenticated => _user != null && _apiClient.token != null;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  /// Check existing session on app startup
+  /// Check if the user already has a saved token when launching the app.
+  /// Runs on the Splash Screen before deciding to navigate to Home or Login.
   Future<bool> checkSession() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
+      // If a Bearer auth token was previously saved to local storage
       if (_apiClient.token != null && _apiClient.token!.isNotEmpty) {
         try {
+          // Attempt to fetch current user profile from /auth/me
           _user = await _authService.getMe();
         } catch (_) {
+          // If /auth/me fails, try syncing profile via /auth/sync
           _user = await _authService.syncUser();
         }
         _isLoading = false;
@@ -34,7 +47,7 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
     } catch (_) {
-      // If MongoDB is offline, keep logged in if token exists
+      // Fallback: If backend DB is offline, preserve demo session so UI is not blocked
       if (_apiClient.token != null && _apiClient.token!.isNotEmpty) {
         _user = UserModel(
           id: 'dev_user',
@@ -54,6 +67,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Sign In with Email & Password
+  /// Handles both Quick Demo accounts and real Firebase Auth users.
   Future<bool> login({
     required String email,
     required String password,
@@ -63,6 +77,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // 1. One-Click Demo Mode bypass for instant local testing
       if (email.trim().toLowerCase() == 'demo@transnova.com') {
         await _apiClient.setToken('demo_token');
         try {
@@ -80,6 +95,7 @@ class AuthProvider extends ChangeNotifier {
         return true;
       }
 
+      // 2. Real login through backend dev token REST API
       final tokenData = await _authService.login(email: email, password: password);
       try {
         _user = await _authService.syncUser();
@@ -103,7 +119,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Register new User
+  /// Register a brand new user account
   Future<bool> register({
     required String email,
     required String password,
@@ -141,7 +157,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Logout
+  /// Log out user, remove authentication token from storage, and reset state.
   Future<void> logout() async {
     await _authService.logout();
     _user = null;
