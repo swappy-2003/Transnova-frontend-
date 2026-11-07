@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/wallet_provider.dart';
+import '../../widgets/app_top_bar.dart';
 import '../main_navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -34,13 +35,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email and password are required')),
+        SnackBar(
+          content: const Text('Email and password are required'),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
+        SnackBar(
+          content: const Text('Password must be at least 6 characters'),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -65,6 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         SnackBar(
           content: Text(authProvider.errorMessage ?? 'Registration failed'),
           backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -75,84 +85,82 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Account'),
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: const AppTopBar(title: 'Create Account'),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Get Started with Transnova',
-                style: GoogleFonts.inter(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                'Join Transnova',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'Create an account to automatically receive your Circle USDC wallet on Polygon Amoy testnet.',
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary),
+                'Get your automated Circle Polygon Amoy smart account.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: AppTheme.textSecondary,
+                ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               // Name
               Text(
                 'Full Name',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
-                ),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _nameController,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.person_outline, color: AppTheme.textMuted),
-                  hintText: 'Alex Rivera',
+                  prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted, size: 20),
+                  hintText: 'Jane Doe',
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               // Email
               Text(
                 'Email Address',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
-                ),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email_outlined, color: AppTheme.textMuted),
-                  hintText: 'alex@transnova.com',
+                  prefixIcon: Icon(Icons.email_outlined, color: AppTheme.textMuted, size: 20),
+                  hintText: 'jane@example.com',
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               // Password
               Text(
                 'Password',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
-                ),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscure,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.textMuted),
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted, size: 20),
                   hintText: 'At least 6 characters',
                   suffixIcon: IconButton(
-                    icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility, color: AppTheme.textMuted),
+                    icon: Icon(
+                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      color: AppTheme.textMuted,
+                      size: 20,
+                    ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                 ),
@@ -160,16 +168,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: authProvider.isLoading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  shadowColor: AppTheme.primary.withValues(alpha: 0.35),
+                ),
                 child: authProvider.isLoading
                     ? const SizedBox(
                         height: 22,
                         width: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                       )
-                    : const Text('Sign Up'),
+                    : Text(
+                        'Create Account',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Already have an account? ',
+                    style: GoogleFonts.plusJakartaSans(color: AppTheme.textSecondary, fontSize: 13),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Text(
+                      'Sign In',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppTheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -178,4 +215,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-

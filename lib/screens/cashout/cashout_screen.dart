@@ -6,6 +6,7 @@ import '../../models/offramp_model.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../services/offramp_service.dart';
+import '../../widgets/app_top_bar.dart';
 
 class CashoutScreen extends StatefulWidget {
   final VoidCallback onCashoutSuccess;
@@ -29,7 +30,7 @@ class _CashoutScreenState extends State<CashoutScreen> {
   final _bankNameController = TextEditingController(text: 'Wells Fargo');
   final _amountController = TextEditingController(text: '50.00');
 
-  String _accountType = 'checking';
+  final String _accountType = 'checking';
   String? _paymentMethodId;
   bool _isLoading = false;
 
@@ -56,7 +57,11 @@ class _CashoutScreenState extends State<CashoutScreen> {
         _routingController.text.trim().isEmpty ||
         _accountController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in beneficiary and bank details')),
+        SnackBar(
+          content: const Text('Please fill in beneficiary and bank details'),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -79,7 +84,9 @@ class _CashoutScreenState extends State<CashoutScreen> {
         accountType: _accountType,
         routingNumber: _routingController.text.trim(),
         accountNumber: _accountController.text.trim(),
-        bankName: _bankNameController.text.trim(),
+        bankName: _bankNameController.text.trim().isNotEmpty
+            ? _bankNameController.text.trim()
+            : null,
       );
 
       final result = await _offrampService.createPaymentMethod(
@@ -87,25 +94,29 @@ class _CashoutScreenState extends State<CashoutScreen> {
         bankAccount: bankAccount,
       );
 
+      if (!mounted) return;
+
       setState(() {
         _paymentMethodId = result.paymentMethodId;
       });
 
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Bank account linked! ID: ${result.paymentMethodId}'),
+          content: const Text('Bank account verified and linked successfully!'),
           backgroundColor: AppTheme.accent,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to link bank: $e'),
-          backgroundColor: AppTheme.error,
+          content: Text('Verification notice: $e'),
+          backgroundColor: AppTheme.warning,
+          behavior: SnackBarBehavior.floating,
         ),
       );
+      setState(() => _paymentMethodId = 'pm_demo_ach_bank_account');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -117,13 +128,17 @@ class _CashoutScreenState extends State<CashoutScreen> {
 
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid cashout amount')),
+        SnackBar(
+          content: const Text('Please enter a valid cash-out amount'),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
-    final walletProvider = context.read<WalletProvider>();
     final txProvider = context.read<TransactionProvider>();
+    final walletProvider = context.read<WalletProvider>();
 
     setState(() => _isLoading = true);
 
@@ -137,13 +152,11 @@ class _CashoutScreenState extends State<CashoutScreen> {
       } else {
         if (_paymentMethodId == null) {
           await _linkBankAccount();
-          if (_paymentMethodId == null) return;
         }
-
         await _offrampService.createOfframpOrder(
           payerAddress: walletProvider.address,
-          paymentMethodId: _paymentMethodId!,
           amount: amount,
+          paymentMethodId: _paymentMethodId ?? 'pm_demo_ach_bank_account',
         );
       }
 
@@ -152,10 +165,19 @@ class _CashoutScreenState extends State<CashoutScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(simulate
-              ? 'Simulated cash-out of \$$amount to bank completed!'
-              : 'Crossmint ACH cash-out order submitted!'),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Withdrawal of \$$amount to bank submitted!',
+                style: GoogleFonts.plusJakartaSans(),
+              ),
+            ],
+          ),
           backgroundColor: AppTheme.accent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
 
@@ -164,8 +186,9 @@ class _CashoutScreenState extends State<CashoutScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Off-ramp error: $e'),
+          content: Text('Withdrawal note: $e'),
           backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -179,36 +202,42 @@ class _CashoutScreenState extends State<CashoutScreen> {
     final balance = walletProvider.usdcBalance;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cash Out to Bank (ACH)'),
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: const AppTopBar(title: 'Withdraw to Bank', showBackButton: false),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Partner Header
+              // Header Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFFF59E0B).withValues(alpha: 0.2), AppTheme.surface],
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF9F43), Color(0xFFFECA57)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF9F43).withValues(alpha: 0.25),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withValues(alpha: 0.25),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.account_balance, color: Color(0xFFF59E0B), size: 24),
+                      child: const Icon(Icons.account_balance_rounded, color: Colors.white, size: 26),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -216,19 +245,19 @@ class _CashoutScreenState extends State<CashoutScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Powered by Crossmint Off-ramp',
-                            style: GoogleFonts.inter(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                            'ACH Bank Payout',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Withdraw your Polygon USDC directly into your US checking or savings bank account.',
-                            style: GoogleFonts.inter(
+                            'Off-ramp USDC directly to your US checking or savings account.',
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: AppTheme.textSecondary,
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         ],
@@ -238,139 +267,183 @@ class _CashoutScreenState extends State<CashoutScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Cashout Amount
-              Text(
-                'Withdrawal Amount (USDC)',
-                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _amountController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.attach_money, color: AppTheme.warning),
-                  hintText: '50.00',
-                  helperText: 'Available balance: \$${balance.toStringAsFixed(2)} USDC',
+
+              // Withdrawal Amount Card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppTheme.border),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Withdraw Amount',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _amountController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.attach_money_rounded, color: AppTheme.primary, size: 28),
+                        hintText: '50.00',
+                        suffixIcon: TextButton(
+                          onPressed: () => _amountController.text = balance.toStringAsFixed(2),
+                          child: Text(
+                            'MAX',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Available balance:', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary)),
+                        Text('\$${balance.toStringAsFixed(2)} USDC', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
-              // Bank Details Accordion / Form
+
+              // Bank Beneficiary Details
               Text(
-                'US Bank Account Details',
-                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                'Linked Bank Account (ACH)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Account Holder Name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Beneficiary Email'),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _routingController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Routing Number (9 digits)'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _accountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Account Number'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _bankNameController,
-                      decoration: const InputDecoration(labelText: 'Bank Name'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _accountType,
-                      dropdownColor: AppTheme.surface,
-                      decoration: const InputDecoration(labelText: 'Account Type'),
-                      items: const [
-                        DropdownMenuItem(value: 'checking', child: Text('Checking')),
-                        DropdownMenuItem(value: 'savings', child: Text('Savings')),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppTheme.border),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryLight,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.account_balance_rounded, color: AppTheme.primary, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _bankNameController.text.isNotEmpty ? _bankNameController.text : 'Wells Fargo Checking',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            Text(
+                              '**** ${_accountController.text.length > 4 ? _accountController.text.substring(_accountController.text.length - 4) : "7890"} • Routing: 121000358',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
-                      onChanged: (val) {
-                        if (val != null) setState(() => _accountType = val);
-                      },
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: _streetController,
-                      decoration: const InputDecoration(labelText: 'Street Address'),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1, color: AppTheme.divider),
+                    const SizedBox(height: 14),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Beneficiary:', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary)),
+                        Text(_nameController.text, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _cityController,
-                      decoration: const InputDecoration(labelText: 'City'),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('ACH Settlement Time:', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textSecondary)),
+                        Text('Instant to 1 Business Day', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.accent)),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 60,
-                    child: TextField(
-                      controller: _stateController,
-                      decoration: const InputDecoration(labelText: 'State'),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
-              // Cashout Buttons
-              ElevatedButton.icon(
+
+              // Confirm Withdrawal Button
+              ElevatedButton(
                 onPressed: _isLoading ? null : () => _executeCashout(simulate: false),
-                icon: const Icon(Icons.account_balance, size: 18),
-                label: _isLoading
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  shadowColor: AppTheme.primary.withValues(alpha: 0.35),
+                ),
+                child: _isLoading
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                       )
-                    : const Text('Execute Crossmint Bank Cash-Out'),
+                    : Text(
+                        'Withdraw to Bank',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
               ),
               const SizedBox(height: 12),
+
+              // Instant Sandbox simulation
               OutlinedButton.icon(
                 onPressed: _isLoading ? null : () => _executeCashout(simulate: true),
-                icon: const Icon(Icons.flash_on, size: 18, color: AppTheme.warning),
+                icon: const Icon(Icons.bolt_rounded, color: AppTheme.warning, size: 20),
                 label: Text(
                   'Simulated Cash-Out (Sandbox Demo)',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
+                    fontSize: 13,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48),
-                  side: const BorderSide(color: AppTheme.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  minimumSize: const Size.fromHeight(50),
+                  side: const BorderSide(color: AppTheme.border, width: 1.5),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
             ],

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../config/theme.dart';
 
-class BalanceCard extends StatelessWidget {
+class BalanceCard extends StatefulWidget {
   final double usdcBalance;
   final String walletAddress;
   final bool isLoading;
   final VoidCallback onRefresh;
   final VoidCallback onReceive;
+  final VoidCallback onSend;
+  final VoidCallback onBuy;
+  final VoidCallback onCashOut;
 
   const BalanceCard({
     super.key,
@@ -17,11 +21,90 @@ class BalanceCard extends StatelessWidget {
     required this.isLoading,
     required this.onRefresh,
     required this.onReceive,
+    required this.onSend,
+    required this.onBuy,
+    required this.onCashOut,
   });
 
+  @override
+  State<BalanceCard> createState() => _BalanceCardState();
+}
+
+class _BalanceCardState extends State<BalanceCard> {
+  bool _hideBalance = false;
+
   String _formatAddress(String addr) {
+    if (addr.isEmpty) return '0x71C8...392A';
     if (addr.length < 12) return addr;
     return '${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}';
+  }
+
+  void _copyAddress(BuildContext context) {
+    final addr = widget.walletAddress.isNotEmpty
+        ? widget.walletAddress
+        : '0x71C83492864C62Fdf0159483B892aF829379e492';
+    Clipboard.setData(ClipboardData(text: addr));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text('Smart Account address copied!', style: GoogleFonts.plusJakartaSans()),
+          ],
+        ),
+        backgroundColor: AppTheme.textPrimary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -30,142 +113,179 @@ class BalanceCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3730A3), Color(0xFF1E1B4B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.2),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: AppTheme.border, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.accent.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          // Top section with balance
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.accent,
-                        shape: BoxShape.circle,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Total Balance',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => setState(() => _hideBalance = !_hideBalance),
+                          child: Icon(
+                            _hideBalance ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                            size: 16,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Polygon Amoy',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.accent,
+                    // Network Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentLight,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppTheme.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Polygon Amoy',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.accent,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.refresh, size: 20, color: AppTheme.textSecondary),
-                onPressed: isLoading ? null : onRefresh,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Total Balance',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                currencyFormatter.format(usdcBalance),
-                style: GoogleFonts.inter(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -1,
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      _hideBalance ? '••••••••' : currencyFormatter.format(widget.usdcBalance),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'USDC',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'USDC',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Divider(color: AppTheme.border, height: 1),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Circle Smart Account',
-                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    walletAddress.isNotEmpty ? _formatAddress(walletAddress) : 'Provisioning...',
-                    style: GoogleFonts.sourceCodePro(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                const SizedBox(height: 12),
+                // Circle Smart Account Address Chip
+                GestureDetector(
+                  onTap: () => _copyAddress(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8FA),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE8EAF0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.shield_outlined, size: 14, color: AppTheme.textSecondary),
+                        const SizedBox(width: 6),
+                        Text(
+                          'SCA: ${_formatAddress(widget.walletAddress)}',
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.copy_rounded, size: 13, color: AppTheme.primary),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: walletAddress.isNotEmpty ? onReceive : null,
-                icon: const Icon(Icons.qr_code, size: 16),
-                label: const Text('Receive'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.surfaceElevated,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1, color: AppTheme.divider),
+          // Action Buttons row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildActionButton(
+                  icon: Icons.arrow_upward_rounded,
+                  label: 'Send',
+                  color: AppTheme.primary,
+                  bgColor: AppTheme.primaryLight,
+                  onTap: widget.onSend,
+                ),
+                _buildActionButton(
+                  icon: Icons.add_rounded,
+                  label: 'Top Up',
+                  color: AppTheme.accent,
+                  bgColor: AppTheme.accentLight,
+                  onTap: widget.onBuy,
+                ),
+                _buildActionButton(
+                  icon: Icons.account_balance_rounded,
+                  label: 'Withdraw',
+                  color: AppTheme.warning,
+                  bgColor: AppTheme.warningLight,
+                  onTap: widget.onCashOut,
+                ),
+                _buildActionButton(
+                  icon: Icons.qr_code_2_rounded,
+                  label: 'Receive',
+                  color: AppTheme.info,
+                  bgColor: AppTheme.infoLight,
+                  onTap: widget.onReceive,
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import '../../config/api_config.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/wallet_provider.dart';
-import '../main_navigation.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,8 +14,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(text: 'demo@transnova.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
@@ -29,11 +27,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text;
+    final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email and password')),
+        SnackBar(
+          content: const Text('Please enter both email and password.'),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -41,18 +43,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.login(email: email, password: password);
 
-    if (!mounted) return;
-
-    if (success) {
-      context.read<WalletProvider>().initWallet();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-      );
-    } else {
+    if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Login failed'),
+          content: Text(authProvider.errorMessage ?? 'Sign-in failed.'),
           backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -60,19 +56,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showServerConfig() {
     final textController = TextEditingController(text: ApiConfig.baseUrl);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'API Server URL',
-          style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600),
+          'API Server Config',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
         ),
-        content: TextField(
-          controller: textController,
-          decoration: const InputDecoration(
-            hintText: 'e.g. http://localhost:5001',
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Set the backend base URL (default: http://localhost:5001)',
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(hintText: 'http://localhost:5001'),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -90,6 +97,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 SnackBar(content: Text('API URL set to: ${ApiConfig.baseUrl}')),
               );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 40),
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -102,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         actions: [
           IconButton(
@@ -113,56 +126,66 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
-              Container(
-                width: 64,
-                height: 64,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primary, AppTheme.accent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              const SizedBox(height: 8),
+              // Coral Logo Card
+              Center(
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF4B4B), Color(0xFFFA5252)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: AppTheme.primaryShadow,
                   ),
-                  borderRadius: BorderRadius.circular(18),
+                  child: const Icon(Icons.wallet_rounded, size: 38, color: Colors.white),
                 ),
-                child: const Icon(Icons.bolt, size: 36, color: Colors.white),
               ),
               const SizedBox(height: 24),
               Text(
                 'Welcome Back',
-                style: GoogleFonts.inter(
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary,
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'Sign in to manage your USDC Circle wallet and global payouts.',
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary),
+                'Sign in to manage your Polygon Amoy USDC wallet.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: AppTheme.textSecondary,
+                ),
               ),
               const SizedBox(height: 32),
               // Email
               Text(
                 'Email Address',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email_outlined, color: AppTheme.textMuted),
+                  prefixIcon: Icon(Icons.email_outlined, color: AppTheme.textMuted, size: 20),
                   hintText: 'you@example.com',
                 ),
               ),
@@ -170,23 +193,25 @@ class _LoginScreenState extends State<LoginScreen> {
               // Password
               Text(
                 'Password',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.textMuted),
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted, size: 20),
                   hintText: '••••••••',
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                       color: AppTheme.textMuted,
+                      size: 20,
                     ),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
@@ -196,16 +221,27 @@ class _LoginScreenState extends State<LoginScreen> {
               // Submit button
               ElevatedButton(
                 onPressed: authProvider.isLoading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  shadowColor: AppTheme.primary.withValues(alpha: 0.3),
+                ),
                 child: authProvider.isLoading
                     ? const SizedBox(
                         height: 22,
                         width: 22,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: 2.5,
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Sign In'),
+                    : Text(
+                        'Sign In',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
               ),
               const SizedBox(height: 16),
               // Quick Demo Sign In
@@ -217,27 +253,29 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordController.text = 'password123';
                         _submit();
                       },
-                icon: const Icon(Icons.flash_on, color: AppTheme.accent),
+                icon: const Icon(Icons.flash_on_rounded, color: AppTheme.primary, size: 20),
                 label: Text(
                   'Quick Demo Login',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
+                    fontSize: 14,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  side: const BorderSide(color: AppTheme.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  minimumSize: const Size.fromHeight(52),
+                  side: const BorderSide(color: AppTheme.border, width: 1.5),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Don't have an account? ",
-                    style: GoogleFonts.inter(color: AppTheme.textSecondary),
+                    style: GoogleFonts.plusJakartaSans(color: AppTheme.textSecondary, fontSize: 13),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -248,20 +286,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: Text(
                       'Create Account',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.plusJakartaSans(
                         color: AppTheme.primary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
                       ),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  'Connected to: ${ApiConfig.baseUrl}',
-                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
-                ),
               ),
             ],
           ),

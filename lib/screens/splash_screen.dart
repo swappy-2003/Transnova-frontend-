@@ -22,6 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+
     final authProvider = context.read<AuthProvider>();
     final isLoggedIn = await authProvider.checkSession();
 
@@ -42,21 +45,22 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Figma Splash Red Circular Emblem
             Container(
-              width: 84,
-              height: 84,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.accent],
+                  colors: [Color(0xFFFF4B4B), Color(0xFFFA5252)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: AppTheme.primary.withValues(alpha: 0.35),
@@ -65,34 +69,41 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.account_balance_wallet_rounded,
-                size: 42,
-                color: Colors.white,
+              child: const Center(
+                child: Icon(
+                  Icons.bolt_rounded,
+                  size: 48,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(height: 24),
             Text(
               'Transnova',
-              style: GoogleFonts.inter(
-                fontSize: 32,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: Colors.white,
+                color: AppTheme.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
-              'Global Stablecoin Payments & Cross-border Transfers',
-              style: GoogleFonts.inter(
-                fontSize: 14,
+              'High Fidelity Digital E-Wallet',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
                 color: AppTheme.textSecondary,
               ),
             ),
-            const SizedBox(height: 48),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-              strokeWidth: 2.5,
+            const SizedBox(height: 40),
+            const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppTheme.primary,
+              ),
             ),
           ],
         ),

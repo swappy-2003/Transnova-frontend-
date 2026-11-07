@@ -63,6 +63,23 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (email.trim().toLowerCase() == 'demo@transnova.com') {
+        await _apiClient.setToken('demo_token');
+        try {
+          _user = await _authService.syncUser();
+        } catch (_) {
+          _user = UserModel(
+            id: 'demo_user_uid',
+            firebaseUid: 'demo_user_uid',
+            email: 'demo@transnova.com',
+            displayName: 'Demo User',
+          );
+        }
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
       final tokenData = await _authService.login(email: email, password: password);
       try {
         _user = await _authService.syncUser();

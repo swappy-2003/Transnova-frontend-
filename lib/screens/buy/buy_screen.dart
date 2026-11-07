@@ -6,6 +6,7 @@ import '../../config/theme.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../services/onramp_service.dart';
+import '../../widgets/app_top_bar.dart';
 
 class BuyScreen extends StatefulWidget {
   final VoidCallback onDepositSuccess;
@@ -18,7 +19,7 @@ class BuyScreen extends StatefulWidget {
 
 class _BuyScreenState extends State<BuyScreen> {
   final _amountController = TextEditingController(text: '100');
-  String _selectedFiat = 'USD';
+  final String _selectedFiat = 'USD';
   bool _isLoading = false;
 
   final OnrampService _onrampService = OnrampService();
@@ -35,7 +36,11 @@ class _BuyScreenState extends State<BuyScreen> {
 
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid fiat amount')),
+        SnackBar(
+          content: const Text('Please enter a valid fiat amount'),
+          backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -60,8 +65,9 @@ class _BuyScreenState extends State<BuyScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('On-ramp error: $e'),
+          content: Text('On-ramp: $e'),
           backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -90,8 +96,19 @@ class _BuyScreenState extends State<BuyScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Simulated deposit of \$$amount USDC credited to wallet!'),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Deposit of \$$amount USDC credited!',
+                style: GoogleFonts.plusJakartaSans(),
+              ),
+            ],
+          ),
           backgroundColor: AppTheme.accent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
 
@@ -100,8 +117,9 @@ class _BuyScreenState extends State<BuyScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text('Deposit simulation: $e'),
           backgroundColor: AppTheme.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -112,36 +130,42 @@ class _BuyScreenState extends State<BuyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buy USDC (On-ramp)'),
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: const AppTopBar(title: 'Top Up Balance', showBackButton: false),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Partner Header
+              // Transak Partner Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF0284C7).withValues(alpha: 0.25), AppTheme.surface],
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00B894), Color(0xFF55EFC4)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF0284C7).withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF00B894).withValues(alpha: 0.25),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0284C7).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withValues(alpha: 0.25),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.flash_on, color: Color(0xFF38BDF8), size: 24),
+                      child: const Icon(Icons.credit_card_rounded, color: Colors.white, size: 26),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -149,19 +173,19 @@ class _BuyScreenState extends State<BuyScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Powered by Transak',
-                            style: GoogleFonts.inter(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                            'Instant On-Ramp',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Deposit fiat via Card, Apple Pay, or Wire directly into your Polygon USDC wallet.',
-                            style: GoogleFonts.inter(
+                            'Buy USDC with Credit Card or Apple Pay via Transak.',
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: AppTheme.textSecondary,
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         ],
@@ -170,113 +194,184 @@ class _BuyScreenState extends State<BuyScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
-              // Currency & Amount
-              Text(
-                'You Pay',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedFiat,
-                        dropdownColor: AppTheme.surface,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                        items: ['USD', 'EUR', 'GBP', 'CAD'].map((curr) {
-                          return DropdownMenuItem(value: curr, child: Text(curr));
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedFiat = val);
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700),
-                      decoration: const InputDecoration(
-                        hintText: '100.00',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Conversion preview
+              const SizedBox(height: 24),
+
+              // Amount Card
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: AppTheme.border),
+                  boxShadow: AppTheme.cardShadow,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Estimated USDC received:',
-                      style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
-                    ),
-                    Text(
-                      '~${_amountController.text.isNotEmpty ? _amountController.text : "0"} USDC',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.accent,
+                      'You Pay',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.textPrimary,
+                            ),
+                            decoration: const InputDecoration(
+                              prefixText: '\$ ',
+                              hintText: '100',
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              fillColor: Colors.transparent,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.background,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('🇺🇸', style: TextStyle(fontSize: 18)),
+                              const SizedBox(width: 6),
+                              Text(
+                                _selectedFiat,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AppTheme.divider),
+                    const SizedBox(height: 16),
+
+                    // Quick amount presets
+                    Row(
+                      children: [50, 100, 250, 500].map((preset) {
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: InkWell(
+                              onTap: () => _amountController.text = preset.toString(),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.background,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: AppTheme.border),
+                                ),
+                                child: Text(
+                                  '\$$preset',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              // Continue button
+              const SizedBox(height: 20),
+
+              // Summary
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Estimated USDC', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary)),
+                        Text('~ ${_amountController.text} USDC', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.accent)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Target Network', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary)),
+                        Text('Polygon Amoy', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // Buy via Transak Button
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _launchTransakWidget,
-                icon: const Icon(Icons.open_in_new, size: 18),
-                label: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Open Transak On-ramp Widget'),
+                icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                label: Text(
+                  'Continue with Transak',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  shadowColor: AppTheme.primary.withValues(alpha: 0.35),
+                ),
               ),
-              const SizedBox(height: 14),
-              // Simulation button
+              const SizedBox(height: 12),
+
+              // Simulated Deposit (Instant Testnet Credit)
               OutlinedButton.icon(
                 onPressed: _isLoading ? null : _simulateDeposit,
-                icon: const Icon(Icons.savings_outlined, size: 18, color: AppTheme.accent),
+                icon: const Icon(Icons.bolt_rounded, color: AppTheme.accent, size: 20),
                 label: Text(
-                  'Instant Simulated Deposit (Sandbox)',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
+                  'Instant Simulated Deposit (Testnet)',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48),
-                  side: const BorderSide(color: AppTheme.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  minimumSize: const Size.fromHeight(50),
+                  side: const BorderSide(color: AppTheme.border, width: 1.5),
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
             ],

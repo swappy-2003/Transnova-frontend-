@@ -62,5 +62,23 @@ class TransactionModel {
   bool get isCompleted => status == 'completed' || circleStatus == 'CONFIRMED' || transakStatus == 'COMPLETED';
   bool get isFailed => status == 'failed' || circleStatus == 'FAILED' || transakStatus == 'FAILED';
   bool get isPending => !isCompleted && !isFailed;
+
+  String get description {
+    if (metadata != null && metadata!['description'] != null) {
+      return metadata!['description'].toString();
+    }
+    switch (type) {
+      case 'payin':
+        return 'USDC Deposit';
+      case 'offramp':
+        return 'ACH Cash Out';
+      default:
+        return 'Circle Transfer';
+    }
+  }
+
+  String? get destinationAddress => metadata?['destinationAddress']?.toString();
+  String get currency => asset;
+  String? get circleId => circleTxHash;
 }
 

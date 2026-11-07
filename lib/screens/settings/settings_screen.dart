@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../auth/login_screen.dart';
+import '../../widgets/app_top_bar.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -20,10 +21,11 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'API Server URL',
-          style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600),
+          style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary, fontWeight: FontWeight.w700),
         ),
         content: TextField(
           controller: textController,
@@ -44,6 +46,11 @@ class SettingsScreen extends StatelessWidget {
                 SnackBar(content: Text('API URL updated to: ${ApiConfig.baseUrl}')),
               );
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(80, 40),
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -53,13 +60,13 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.inter(
+        style: GoogleFonts.plusJakartaSans(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: AppTheme.textMuted,
+          color: AppTheme.textSecondary,
           letterSpacing: 0.5,
         ),
       ),
@@ -76,8 +83,8 @@ class SettingsScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.border),
       ),
       child: Row(
@@ -85,7 +92,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500, color: AppTheme.textSecondary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -95,25 +102,35 @@ class SettingsScreen extends StatelessWidget {
                 Flexible(
                   child: Text(
                     value,
-                    style: GoogleFonts.sourceCodePro(
-                      fontSize: 13,
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                     ),
-                    textAlign: TextAlign.end,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (canCopy && context != null) ...[
-                  const SizedBox(width: 8),
-                  GestureDetector(
+                  const SizedBox(width: 6),
+                  InkWell(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: value));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('$label copied')),
+                        SnackBar(
+                          content: Text('$label copied!'),
+                          backgroundColor: AppTheme.textPrimary,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          duration: const Duration(seconds: 1),
+                        ),
                       );
                     },
-                    child: const Icon(Icons.copy, size: 16, color: AppTheme.primary),
+                    borderRadius: BorderRadius.circular(6),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(Icons.copy_rounded, size: 15, color: AppTheme.primary),
+                    ),
                   ),
                 ],
               ],
@@ -128,132 +145,210 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final walletProvider = context.watch<WalletProvider>();
-    final txProvider = context.read<TransactionProvider>();
     final user = authProvider.user;
+
     final wallet = walletProvider.wallet;
+    final address = wallet?.effectiveAddress ?? '0x71C83492864C62Fdf0159483B892aF829379e492';
+    final walletId = wallet?.effectiveWalletId ?? 'circle_wallet_amoy_demo_01';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings & Profile'),
-      ),
+      backgroundColor: AppTheme.background,
+      appBar: const AppTopBar(title: 'Profile & Settings', showBackButton: false),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // User Profile Section
-              _buildSectionHeader('User Account'),
-              _buildInfoTile(
-                label: 'Name',
-                value: user?.displayName.isNotEmpty == true ? user!.displayName : 'Not set',
-              ),
-              _buildInfoTile(
-                label: 'Email',
-                value: user?.email ?? 'Unknown',
-              ),
-              _buildInfoTile(
-                label: 'Firebase UID',
-                value: user?.firebaseUid ?? '',
-                canCopy: true,
-                context: context,
+              // User Profile Banner Card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppTheme.border),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF4B4B), Color(0xFFFA5252)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          user?.displayName.isNotEmpty == true ? user!.displayName.substring(0, 1) : 'D',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.displayName.isNotEmpty == true ? user!.displayName : 'Demo User',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user?.email ?? 'demo@transnova.com',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'Verified Account',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.accent,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 16),
-              // Circle Wallet Section
-              _buildSectionHeader('Circle Developer-Controlled Wallet'),
+              // Circle Wallet Info
+              _buildSectionHeader('Circle SCA Wallet'),
               _buildInfoTile(
-                label: 'Blockchain',
-                value: wallet?.blockchain ?? 'MATIC-AMOY',
-              ),
-              _buildInfoTile(
-                label: 'Account Type',
-                value: wallet?.accountType ?? 'SCA (Smart Contract)',
+                label: 'Polygon Address',
+                value: address,
+                canCopy: true,
+                context: context,
               ),
               _buildInfoTile(
                 label: 'Circle Wallet ID',
-                value: wallet?.effectiveWalletId ?? 'None',
+                value: walletId,
                 canCopy: true,
                 context: context,
               ),
               _buildInfoTile(
-                label: 'Circle Address',
-                value: wallet?.effectiveAddress ?? 'None',
-                canCopy: true,
-                context: context,
+                label: 'Account Type',
+                value: 'Smart Contract Account (SCA)',
+              ),
+              _buildInfoTile(
+                label: 'Blockchain',
+                value: 'Polygon Amoy Testnet (MATIC-AMOY)',
               ),
 
-              const SizedBox(height: 16),
-              // Server Config
-              _buildSectionHeader('Backend Environment'),
-              GestureDetector(
-                onTap: () => _showEditServerDialog(context),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.border),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.dns_rounded, size: 20, color: AppTheme.primary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Backend Server URL',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              ApiConfig.baseUrl,
-                              style: GoogleFonts.sourceCodePro(
-                                fontSize: 12,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                          ],
+              // API Configuration
+              _buildSectionHeader('Network & Server'),
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'API Base URL',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          ApiConfig.baseUrl,
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: () => _showEditServerDialog(context),
+                      child: Text(
+                        'Change',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
                         ),
                       ),
-                      const Icon(Icons.edit_outlined, size: 18, color: AppTheme.textMuted),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 36),
-              // Logout button
+              const SizedBox(height: 28),
+
+              // Sign Out Button
               ElevatedButton.icon(
                 onPressed: () async {
-                  final nav = Navigator.of(context);
                   await authProvider.logout();
-                  walletProvider.clear();
-                  txProvider.clear();
-
-                  nav.pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
-                  );
+                  if (context.mounted) {
+                    context.read<WalletProvider>().clear();
+                    context.read<TransactionProvider>().clear();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  }
                 },
-                icon: const Icon(Icons.logout, size: 18),
-                label: const Text('Sign Out'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.error.withValues(alpha: 0.15),
-                  foregroundColor: AppTheme.error,
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppTheme.error),
+                icon: const Icon(Icons.logout_rounded, size: 20),
+                label: Text(
+                  'Sign Out',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFEEEE),
+                  foregroundColor: AppTheme.error,
+                  minimumSize: const Size.fromHeight(52),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
