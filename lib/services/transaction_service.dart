@@ -7,20 +7,28 @@ import 'api_client.dart';
 class TransactionService {
   final ApiClient _client = ApiClient();
 
-  /// Estimate Circle transfer gas/network fee
+  /// Estimate Circle transfer gas/network fee (by wallet address or registered recipient email)
   Future<FeeEstimateModel> estimateFee({
     required String walletId,
-    required String destinationAddress,
+    String? destinationAddress,
+    String? recipientEmail,
     required double amount,
   }) async {
     try {
+      final payload = <String, dynamic>{
+        'walletId': walletId,
+        'amount': amount,
+      };
+      if (destinationAddress != null && destinationAddress.trim().isNotEmpty) {
+        payload['destinationAddress'] = destinationAddress.trim();
+      }
+      if (recipientEmail != null && recipientEmail.trim().isNotEmpty) {
+        payload['recipientEmail'] = recipientEmail.trim();
+      }
+
       final response = await _client.dio.post(
         ApiConfig.estimateFee,
-        data: {
-          'walletId': walletId,
-          'destinationAddress': destinationAddress.trim(),
-          'amount': amount,
-        },
+        data: payload,
       );
 
       final data = response.data as Map<String, dynamic>;
@@ -30,20 +38,28 @@ class TransactionService {
     }
   }
 
-  /// Execute Circle USDC transfer
+  /// Execute Circle USDC transfer (supports either Polygon address or Transnova user email)
   Future<TransactionModel> executeCircleTransfer({
     required String walletId,
-    required String destinationAddress,
+    String? destinationAddress,
+    String? recipientEmail,
     required double amount,
   }) async {
     try {
+      final payload = <String, dynamic>{
+        'walletId': walletId,
+        'amount': amount,
+      };
+      if (destinationAddress != null && destinationAddress.trim().isNotEmpty) {
+        payload['destinationAddress'] = destinationAddress.trim();
+      }
+      if (recipientEmail != null && recipientEmail.trim().isNotEmpty) {
+        payload['recipientEmail'] = recipientEmail.trim();
+      }
+
       final response = await _client.dio.post(
         ApiConfig.circleTransfer,
-        data: {
-          'walletId': walletId,
-          'destinationAddress': destinationAddress.trim(),
-          'amount': amount,
-        },
+        data: payload,
       );
 
       final data = response.data as Map<String, dynamic>;

@@ -53,6 +53,47 @@ class WalletService {
     }
   }
 
+  /// Fetches the user's active primary Circle wallet and permanent QR code
+  /// directly from GET /api/v1/wallets/me
+  Future<Map<String, dynamic>> getPrimaryWallet() async {
+    try {
+      final response = await _client.dio.get(ApiConfig.walletMe);
+      final data = response.data as Map<String, dynamic>;
+
+      final walletJson = data['wallet'] as Map<String, dynamic>?;
+      final qrJson = data['qr'] as Map<String, dynamic>?;
+
+      WalletModel? wallet;
+      if (walletJson != null) {
+        wallet = WalletModel.fromJson(walletJson);
+      }
+
+      WalletQrModel? qr;
+      if (qrJson != null) {
+        qr = WalletQrModel.fromJson(qrJson);
+      }
+
+      return {
+        'wallet': wallet,
+        'qr': qr,
+      };
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to get primary wallet';
+    }
+  }
+
+  /// Generates or fetches the permanent QR code for a specific wallet
+  Future<WalletQrModel> getWalletQr(String walletId) async {
+    try {
+      final response = await _client.dio.get(ApiConfig.walletQr(walletId));
+      final data = response.data as Map<String, dynamic>;
+      final qrJson = data['qr'] as Map<String, dynamic>;
+      return WalletQrModel.fromJson(qrJson);
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to load wallet QR code';
+    }
+  }
+
   /// Checks if a given Ethereum/Polygon address string is valid on-chain.
   Future<bool> validateAddress(String address, {String blockchain = 'MATIC-AMOY'}) async {
     try {

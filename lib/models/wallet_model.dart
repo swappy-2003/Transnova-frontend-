@@ -38,6 +38,7 @@ class WalletModel {
   final String status;
   final List<TokenBalance> balances;
   final String? usdcTokenId;
+  final WalletQrModel? qr;
 
   WalletModel({
     required this.id,
@@ -53,6 +54,7 @@ class WalletModel {
     this.status = 'active',
     this.balances = const [],
     this.usdcTokenId,
+    this.qr,
   });
 
   String get effectiveAddress => (circleAddress != null && circleAddress!.isNotEmpty)
@@ -85,12 +87,16 @@ class WalletModel {
       circleAddress: json['circleAddress']?.toString(),
       accountType: json['accountType']?.toString() ?? 'SCA',
       status: json['status']?.toString() ?? 'active',
+      qr: json['qr'] != null && json['qr'] is Map<String, dynamic>
+          ? WalletQrModel.fromJson(json['qr'] as Map<String, dynamic>)
+          : null,
     );
   }
 
   WalletModel copyWith({
     List<TokenBalance>? balances,
     String? usdcTokenId,
+    WalletQrModel? qr,
   }) {
     return WalletModel(
       id: id,
@@ -106,6 +112,28 @@ class WalletModel {
       status: status,
       balances: balances ?? this.balances,
       usdcTokenId: usdcTokenId ?? this.usdcTokenId,
+      qr: qr ?? this.qr,
+    );
+  }
+}
+
+/// Permanent QR code metadata returned by backend for Flow 2 instant P2P transfers
+class WalletQrModel {
+  final String address;
+  final String? qrDataUrl;
+  final String? rawPayload;
+
+  WalletQrModel({
+    required this.address,
+    this.qrDataUrl,
+    this.rawPayload,
+  });
+
+  factory WalletQrModel.fromJson(Map<String, dynamic> json) {
+    return WalletQrModel(
+      address: json['address']?.toString() ?? '',
+      qrDataUrl: json['qrDataUrl']?.toString(),
+      rawPayload: json['rawPayload']?.toString(),
     );
   }
 }

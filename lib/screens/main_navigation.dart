@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../providers/wallet_provider.dart';
 import 'activity/activity_screen.dart';
 import 'buy/buy_screen.dart';
 import 'cashout/cashout_screen.dart';
@@ -120,7 +122,10 @@ class _MainNavigationState extends State<MainNavigation> {
                 ),
                 // Center Elevated Floating Action Button (SCAN) matching Figma Image 1
                 GestureDetector(
-                  onTap: () => ReceiveModal.show(context, ''),
+                  onTap: () {
+                    final wallet = context.read<WalletProvider>();
+                    ReceiveModal.show(context, wallet.address, wallet.qr?.rawPayload);
+                  },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

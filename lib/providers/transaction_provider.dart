@@ -49,16 +49,18 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  /// Calculates estimated Polygon Amoy blockchain gas fees before transferring
+  /// Calculates estimated Polygon Amoy blockchain gas fees before transferring (via address or email)
   Future<FeeEstimateModel?> estimateFee({
     required String walletId,
-    required String destinationAddress,
+    String? destinationAddress,
+    String? recipientEmail,
     required double amount,
   }) async {
     try {
       _feeEstimate = await _transactionService.estimateFee(
         walletId: walletId,
         destinationAddress: destinationAddress,
+        recipientEmail: recipientEmail,
         amount: amount,
       );
       notifyListeners();
@@ -71,9 +73,11 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   /// Executes an on-chain transfer of USDC via Circle Developer-Controlled Wallets
+  /// (supports scanned Polygon address or registered recipient email)
   Future<TransactionModel> sendCircleTransfer({
     required String walletId,
-    required String destinationAddress,
+    String? destinationAddress,
+    String? recipientEmail,
     required double amount,
     String feeLevel = 'medium',
   }) async {
@@ -85,6 +89,7 @@ class TransactionProvider extends ChangeNotifier {
       final tx = await _transactionService.executeCircleTransfer(
         walletId: walletId,
         destinationAddress: destinationAddress,
+        recipientEmail: recipientEmail,
         amount: amount,
       );
       // Prepend newly created transaction to top of history list

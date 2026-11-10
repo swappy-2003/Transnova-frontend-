@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../config/theme.dart';
+import 'razorpay_topup_modal.dart';
+import 'remittance_modal.dart';
 
 class ServiceItem {
   final String title;
@@ -23,6 +25,8 @@ class ServicesGrid extends StatelessWidget {
   final VoidCallback onTopUp;
   final VoidCallback onWithdraw;
   final VoidCallback onScan;
+  final VoidCallback? onRazorpay;
+  final VoidCallback? onRemittance;
 
   const ServicesGrid({
     super.key,
@@ -30,6 +34,8 @@ class ServicesGrid extends StatelessWidget {
     required this.onTopUp,
     required this.onWithdraw,
     required this.onScan,
+    this.onRazorpay,
+    this.onRemittance,
   });
 
   void _showComingSoon(BuildContext context, String serviceName) {
@@ -62,6 +68,20 @@ class ServicesGrid extends StatelessWidget {
         onTap: onTopUp,
       ),
       ServiceItem(
+        title: 'UPI TopUp',
+        icon: Icons.flash_on_rounded,
+        color: const Color(0xFF0C2340),
+        bgColor: const Color(0xFFE8EDF5),
+        onTap: onRazorpay ?? () => RazorpayTopUpModal.show(context),
+      ),
+      ServiceItem(
+        title: 'Remittance',
+        icon: Icons.public_rounded,
+        color: const Color(0xFF6C5CE7),
+        bgColor: const Color(0xFFF1F0FD),
+        onTap: onRemittance ?? () => RemittanceModal.show(context),
+      ),
+      ServiceItem(
         title: 'Withdraw',
         icon: Icons.credit_card_rounded,
         color: AppTheme.warning,
@@ -76,25 +96,11 @@ class ServicesGrid extends StatelessWidget {
         onTap: onScan,
       ),
       ServiceItem(
-        title: 'Mobile Bill',
-        icon: Icons.phone_android_rounded,
-        color: const Color(0xFF6C5CE7),
-        bgColor: const Color(0xFFF1F0FD),
-        onTap: () => _showComingSoon(context, 'Mobile Bill'),
-      ),
-      ServiceItem(
         title: 'Electricity',
         icon: Icons.bolt_rounded,
         color: const Color(0xFFFD79A8),
         bgColor: const Color(0xFFFFF0F5),
         onTap: () => _showComingSoon(context, 'Electricity Bill'),
-      ),
-      ServiceItem(
-        title: 'Vouchers',
-        icon: Icons.card_giftcard_rounded,
-        color: const Color(0xFFE17055),
-        bgColor: const Color(0xFFFDF0ED),
-        onTap: () => _showComingSoon(context, 'Gift Vouchers'),
       ),
       ServiceItem(
         title: 'More',

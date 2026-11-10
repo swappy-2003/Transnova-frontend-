@@ -68,17 +68,30 @@ class _SendScreenState extends State<SendScreen> {
     super.dispose();
   }
 
+  bool _isEmail(String text) => text.contains('@') && text.contains('.');
+
   Future<void> _validateRecipientAddress() async {
-    final address = _addressController.text.trim();
-    if (address.isEmpty) return;
+    final input = _addressController.text.trim();
+    if (input.isEmpty) return;
 
     setState(() {
       _isValidatingAddress = true;
       _isAddressValid = null;
     });
 
+    if (_isEmail(input)) {
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      final valid = emailRegex.hasMatch(input);
+      if (!mounted) return;
+      setState(() {
+        _isValidatingAddress = false;
+        _isAddressValid = valid;
+      });
+      return;
+    }
+
     final walletProvider = context.read<WalletProvider>();
-    final valid = await walletProvider.validateAddress(address);
+    final valid = await walletProvider.validateAddress(input);
 
     if (!mounted) return;
     setState(() {
@@ -96,14 +109,14 @@ class _SendScreenState extends State<SendScreen> {
   }
 
   Future<void> _estimateGasFee() async {
-    final address = _addressController.text.trim();
+    final input = _addressController.text.trim();
     final amountText = _amountController.text.trim();
     final amount = double.tryParse(amountText);
 
-    if (address.isEmpty || amount == null || amount <= 0) {
+    if (input.isEmpty || amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please enter a valid address and amount'),
+          content: const Text('Please enter a valid address/email and amount'),
           backgroundColor: AppTheme.textPrimary,
           behavior: SnackBarBehavior.floating,
         ),
@@ -116,9 +129,11 @@ class _SendScreenState extends State<SendScreen> {
 
     setState(() => _isEstimatingFee = true);
 
+    final isEmail = _isEmail(input);
     await txProvider.estimateFee(
       walletId: walletProvider.walletId,
-      destinationAddress: address,
+      destinationAddress: isEmail ? null : input,
+      recipientEmail: isEmail ? input : null,
       amount: amount,
     );
 
@@ -148,6 +163,7 @@ class _SendScreenState extends State<SendScreen> {
     final txProvider = context.read<TransactionProvider>();
 
     try {
+      final isEmail = _isEmail(address);
       if (simulate) {
         await txProvider.simulateTransaction(
           type: 'transfer',
@@ -158,7 +174,8 @@ class _SendScreenState extends State<SendScreen> {
       } else {
         await txProvider.sendCircleTransfer(
           walletId: walletProvider.walletId,
-          destinationAddress: address,
+          destinationAddress: isEmail ? null : address,
+          recipientEmail: isEmail ? address : null,
           amount: amount,
           feeLevel: _selectedFeeTier,
         );
@@ -395,9 +412,9 @@ class _SendScreenState extends State<SendScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Recipient Address Input
+              // Recipient Address or Email Input (Flow 2 P2P transfer)
               Text(
-                'Recipient Address',
+                'Recipient Address or Email',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -409,14 +426,14 @@ class _SendScreenState extends State<SendScreen> {
                 controller: _addressController,
                 style: GoogleFonts.jetBrainsMono(fontSize: 13, color: AppTheme.textPrimary),
                 decoration: InputDecoration(
-                  hintText: 'Enter 0x... Polygon address',
+                  hintText: 'Enter 0x... address or user@email.com',
                   prefixIcon: const Icon(Icons.alternate_email_rounded, color: AppTheme.textMuted, size: 20),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: const Icon(Icons.paste_rounded, color: AppTheme.primary, size: 20),
-                        tooltip: 'Paste address',
+                        tooltip: 'Paste address or email',
                         onPressed: _pasteAddress,
                       ),
                       if (_isValidatingAddress)
@@ -459,8 +476,12 @@ class _SendScreenState extends State<SendScreen> {
                     const SizedBox(width: 6),
                     Text(
                       _isAddressValid!
-                          ? 'Valid Polygon address'
-                          : 'Invalid Polygon blockchain address',
+                          ? (_isEmail(_addressController.text.trim())
+                              ? 'Valid Transnova recipient email'
+                              : 'Valid Polygon address')
+                          : (_isEmail(_addressController.text.trim())
+                              ? 'Invalid email format'
+                              : 'Invalid Polygon blockchain address'),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

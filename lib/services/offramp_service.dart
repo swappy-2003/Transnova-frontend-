@@ -29,6 +29,30 @@ class OfframpService {
     }
   }
 
+  /// Fetch saved bank payment methods for the authenticated user
+  Future<List<OfframpPaymentMethod>> getPaymentMethods() async {
+    try {
+      final response = await _client.dio.get(ApiConfig.offrampPaymentMethods);
+      final data = response.data as Map<String, dynamic>;
+      final list = data['paymentMethods'] as List<dynamic>? ?? [];
+      return list
+          .map((item) => OfframpPaymentMethod.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to fetch saved payment methods';
+    }
+  }
+
+  /// Get live status and sync state for a Crossmint off-ramp order
+  Future<Map<String, dynamic>> getOfframpOrderStatus(String orderId) async {
+    try {
+      final response = await _client.dio.get(ApiConfig.offrampOrderStatus(orderId));
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to get off-ramp order status';
+    }
+  }
+
   /// Create Crossmint off-ramp order (cashout to bank)
   Future<OfframpOrderResult> createOfframpOrder({
     required String payerAddress,

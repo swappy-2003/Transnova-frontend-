@@ -356,7 +356,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       walletAddress: walletProvider.address,
                       isLoading: walletProvider.isLoading,
                       onRefresh: () => walletProvider.refreshBalance(),
-                      onReceive: () => ReceiveModal.show(context, walletProvider.address),
+                      onReceive: () => ReceiveModal.show(
+                        context,
+                        walletProvider.address,
+                        walletProvider.qr?.rawPayload,
+                      ),
                       onSend: () => widget.onNavigateTab(1),
                       onBuy: () => widget.onNavigateTab(2),
                       onCashOut: () => widget.onNavigateTab(3),
@@ -377,7 +381,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTransfer: () => widget.onNavigateTab(1),
                       onTopUp: () => widget.onNavigateTab(2),
                       onWithdraw: () => widget.onNavigateTab(3),
-                      onScan: () => ReceiveModal.show(context, walletProvider.address),
+                      onScan: () => ReceiveModal.show(
+                        context,
+                        walletProvider.address,
+                        walletProvider.qr?.rawPayload,
+                      ),
                     ),
                     const SizedBox(height: 24),
 

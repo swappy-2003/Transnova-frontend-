@@ -13,11 +13,13 @@ class WalletProvider extends ChangeNotifier {
   final WalletService _walletService = WalletService();
 
   WalletModel? _wallet;
+  WalletQrModel? _qr;
   bool _isLoading = false;
   String? _errorMessage;
 
   // Convenient getters for UI components
   WalletModel? get wallet => _wallet;
+  WalletQrModel? get qr => _qr ?? _wallet?.qr;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -37,8 +39,20 @@ class WalletProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Calls POST /api/v1/wallets/circle on the backend
-      _wallet = await _walletService.createOrGetCircleWallet();
+      // First check GET /api/v1/wallets/me for active primary wallet & permanent QR
+      try {
+        final meData = await _walletService.getPrimaryWallet();
+        if (meData['wallet'] != null) {
+          _wallet = meData['wallet'] as WalletModel;
+          _qr = meData['qr'] as WalletQrModel?;
+        }
+      } catch (_) {
+        // Fallback to create/provision endpoint
+      }
+
+      // If no wallet yet, call POST /api/v1/wallets/circle
+      _wallet ??= await _walletService.createOrGetCircleWallet();
+
       await refreshBalance();
     } catch (e) {
       debugPrint('Circle wallet initialization fallback: $e');

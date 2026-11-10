@@ -96,12 +96,26 @@ flowchart TD
 - Off-ramp order creation from Polygon USDC directly to US bank accounts.
 - Sandbox cash-out simulation for end-to-end payout flow testing.
 
-### 5. 📜 Activity & Transaction History
+### 5. 🌐 Cross-Border Multi-Hop Remittance Pipeline (Flow 1)
+- Seamless end-to-end pipeline: **Sender INR (Transak) → Polygon USDC → Recipient USD Bank Account (Crossmint ACH)**.
+- Full multi-stage lifecycle tracking with live progress timeline.
+- Dynamic exchange rates with fee transparency.
+
+### 6. ⚡ Instant INR / UPI Top-Up via Razorpay
+- High-speed fiat on-ramp supporting UPI (Google Pay, PhonePe, Paytm), Net Banking, and Debit/Credit cards.
+- Server-side cryptographic HMAC signature verification (`POST /api/v1/razorpay/verify-payment`).
+- Real-time wallet balance reconciliation.
+
+### 7. 📲 Flow 2 Instant P2P Transfers & Permanent QR
+- Transfer USDC directly via scanned **permanent QR code** or registered **recipient email address**.
+- Auto-provisioning of permanent Circle Smart Account and QR code on user registration/login.
+
+### 8. 📜 Activity & Transaction History
 - Inflow vs. Outflow monthly summary cards.
 - Multi-filter category chips (`All`, `Transfers`, `Deposits`, `Cash Out`).
 - Transaction detail bottom sheets with Circle ID, reference numbers, and timestamps.
 
-### 6. 🎨 High-Fidelity UI System
+### 9. 🎨 High-Fidelity UI System
 - Vibrant Coral-Red primary palette (`#FF4B4B`).
 - Clean white card elevations with soft diffuse drop shadows (`BoxShadow`).
 - Custom elevated bottom navigation bar with a dedicated center **SCAN** button.
@@ -122,9 +136,11 @@ transnova_flutter/
 │   │   ├── fee_estimate_model.dart # Circle gas estimation response model
 │   │   ├── offramp_model.dart      # Crossmint ACH beneficiary & payout order models
 │   │   ├── onramp_order_model.dart # Transak checkout order model
+│   │   ├── razorpay_model.dart     # Razorpay order and payment verification model
+│   │   ├── remittance_model.dart   # Cross-border multi-hop remittance pipeline model
 │   │   ├── transaction_model.dart  # Unified transaction model for all transfers
 │   │   ├── user_model.dart         # User profile model
-│   │   └── wallet_model.dart       # Circle Smart Contract Account & token balance model
+│   │   └── wallet_model.dart       # Circle Smart Account, token balance & permanent QR model
 │   │
 │   ├── providers/                  # State management controllers (ChangeNotifier)
 │   │   ├── auth_provider.dart      # User login, registration, token persistence & demo session
@@ -146,10 +162,12 @@ transnova_flutter/
 │   │   │   └── widgets/
 │   │   │       ├── balance_card.dart# Floating white balance card with action buttons
 │   │   │       ├── promo_banner.dart# Promotional zero-gas banner card
+│   │   │       ├── razorpay_topup_modal.dart# Instant UPI / RuPay top-up bottom sheet
 │   │   │       ├── receive_modal.dart# Modal with vector QR code and address copy
-│   │   │       └── services_grid.dart# 4x2 grid of service buttons (Transfer, Bill, More)
+│   │   │       ├── remittance_modal.dart# Cross-border multi-hop remittance flow & tracker
+│   │   │       └── services_grid.dart# 4x2 grid of service buttons (Transfer, Remit, UPI, etc.)
 │   │   ├── send/
-│   │   │   └── send_screen.dart    # USDC transfer screen with contacts & fee tiers
+│   │   │   └── send_screen.dart    # USDC transfer screen (supports address or email)
 │   │   ├── settings/
 │   │   │   └── settings_screen.dart# Profile, Circle wallet ID, server URL & logout
 │   │   ├── main_navigation.dart    # 5-item bottom navigation bar with elevated SCAN button
@@ -159,6 +177,11 @@ transnova_flutter/
 │   │   ├── api_client.dart         # Singleton HTTP client with Bearer auth interceptor
 │   │   ├── auth_service.dart       # Auth REST requests (login, register, sync, me)
 │   │   ├── offramp_service.dart    # Crossmint ACH beneficiary & order HTTP calls
+│   │   ├── onramp_service.dart     # Transak widget URL generation
+│   │   ├── razorpay_service.dart   # Razorpay order generation & payment verification
+│   │   ├── remittance_service.dart # End-to-end multi-hop remittance pipeline calls
+│   │   ├── transaction_service.dart# Circle USDC transfers & gas estimation
+│   │   └── wallet_service.dart     # Circle wallet creation, primary wallet & balance checks
 │   │   ├── onramp_service.dart     # Transak widget URL generation HTTP calls
 │   │   ├── transaction_service.dart# Transfer execution & gas fee estimate HTTP calls
 │   │   └── wallet_service.dart     # Circle wallet provisioning & balance HTTP calls

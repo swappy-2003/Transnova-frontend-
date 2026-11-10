@@ -6,10 +6,15 @@ import '../../../config/theme.dart';
 
 class ReceiveModal extends StatelessWidget {
   final String walletAddress;
+  final String? qrPayload;
 
-  const ReceiveModal({super.key, required this.walletAddress});
+  const ReceiveModal({
+    super.key,
+    required this.walletAddress,
+    this.qrPayload,
+  });
 
-  static void show(BuildContext context, String address) {
+  static void show(BuildContext context, String address, [String? qrPayload]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -21,6 +26,7 @@ class ReceiveModal extends StatelessWidget {
         walletAddress: address.isNotEmpty
             ? address
             : '0x71C83492864C62Fdf0159483B892aF829379e492',
+        qrPayload: qrPayload,
       ),
     );
   }
@@ -30,6 +36,9 @@ class ReceiveModal extends StatelessWidget {
     final effectiveAddr = walletAddress.isNotEmpty
         ? walletAddress
         : '0x71C83492864C62Fdf0159483B892aF829379e492';
+    final qrData = (qrPayload != null && qrPayload!.isNotEmpty)
+        ? qrPayload!
+        : effectiveAddr;
 
     return SafeArea(
       child: Padding(
@@ -116,7 +125,7 @@ class ReceiveModal extends StatelessWidget {
                 ],
               ),
               child: QrImageView(
-                data: effectiveAddr,
+                data: qrData,
                 version: QrVersions.auto,
                 size: 190,
                 backgroundColor: Colors.white,

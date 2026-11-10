@@ -68,6 +68,12 @@ class ApiConfig {
   /// Auto-provision a Circle Polygon Amoy Smart Contract Account (SCA)
   static const String circleWallet = '/api/v1/wallets/circle';
 
+  /// Fetch authenticated user's primary Circle wallet and constant QR code
+  static const String walletMe = '/api/v1/wallets/me';
+
+  /// Fetch permanent QR code for a specific wallet
+  static String walletQr(String walletId) => '/api/v1/wallets/$walletId/qr';
+
   /// Fetch real-time USDC token balance for a specific wallet ID
   static String walletBalance(String walletId) => '/api/v1/wallets/$walletId/balance';
 
@@ -109,4 +115,35 @@ class ApiConfig {
 
   /// Create cashout payout order from Polygon USDC to US bank account
   static const String offrampOrders = '/api/v1/offramp/orders';
+
+  /// Poll and sync Crossmint off-ramp order status
+  static String offrampOrderStatus(String orderId) => '/api/v1/offramp/orders/$orderId';
+
+  // ==========================================
+  // CROSS-BORDER REMITTANCE PIPELINE
+  // (On-ramp INR -> USDC Transfer -> Off-ramp USD)
+  // ==========================================
+  /// Initiate end-to-end multi-hop remittance
+  static const String remittanceInitiate = '/api/v1/remittance/initiate';
+
+  /// List user's remittance history
+  static const String remittanceList = '/api/v1/remittance';
+
+  /// Get status and pipeline timeline of a specific remittance
+  static String remittanceStatus(String id) => '/api/v1/remittance/$id';
+
+  // ==========================================
+  // RAZORPAY INSTANT PAYMENT GATEWAY (INR / UPI / CARDS)
+  // ==========================================
+  /// Create a Razorpay payment order for fiat deposit / INR top-up
+  static const String razorpayCreateOrder = '/api/v1/razorpay/create-order';
+
+  /// Verify Razorpay payment signature after successful checkout
+  static const String razorpayVerifyPayment = '/api/v1/razorpay/verify-payment';
+
+  /// Fetch history of Razorpay top-ups and payments
+  static const String razorpayHistory = '/api/v1/razorpay/history';
+
+  /// Fetch a specific Razorpay payment by order ID
+  static String razorpayPayment(String orderId) => '/api/v1/razorpay/payment/$orderId';
 }
