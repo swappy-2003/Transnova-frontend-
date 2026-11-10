@@ -218,6 +218,261 @@ class _SendScreenState extends State<SendScreen> {
     }
   }
 
+  /// High-Fidelity Transfer Confirmation Modal matching Figma Image 1 & 4
+  void _showTransferConfirmation({required bool simulate}) {
+    final address = _addressController.text.trim();
+    final amountText = _amountController.text.trim();
+    final amount = double.tryParse(amountText);
+
+    if (address.isEmpty || amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please check address and amount'),
+          backgroundColor: AppTheme.textPrimary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
+    final isEmail = _isEmail(address);
+    final feeLabel = _selectedFeeTier == 'low'
+        ? '< \$0.01 (Standard)'
+        : (_selectedFeeTier == 'high' ? '~ \$0.02 (Instant)' : '~ \$0.01 (Fast)');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (bottomSheetContext) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Figma Red Header: Transfer Confirmation with (X)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                color: AppTheme.primary,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Transfer Confirmation',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.pop(bottomSheetContext),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Confirmation details
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+              child: Column(
+                children: [
+                  // Recipient info
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8FB),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryLight,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isEmail ? Icons.email_rounded : Icons.account_balance_wallet_rounded,
+                            color: AppTheme.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isEmail ? 'Recipient Email' : 'Recipient Address',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                address,
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Amount breakdown
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Amount to Send',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        '\$$amountText USDC',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Network Gas Fee',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        feeLabel,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Network',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        'Polygon Amoy',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 28, color: AppTheme.divider),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Debit',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        '\$$amountText USDC',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Confirm button
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(bottomSheetContext);
+                      _executeTransfer(simulate: simulate);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.check_circle_outline_rounded, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          simulate ? 'Confirm Simulation' : 'Confirm & Transfer Now',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildFeeOption(String tier, String label, String amountGwei, String feeUsd) {
     final isSelected = _selectedFeeTier == tier;
     return Expanded(
@@ -610,7 +865,7 @@ class _SendScreenState extends State<SendScreen> {
 
               // Confirm Transfer Button
               ElevatedButton(
-                onPressed: txProvider.isLoading ? null : () => _executeTransfer(simulate: false),
+                onPressed: txProvider.isLoading ? null : () => _showTransferConfirmation(simulate: false),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
@@ -644,7 +899,7 @@ class _SendScreenState extends State<SendScreen> {
 
               // Sandbox simulation button
               OutlinedButton.icon(
-                onPressed: txProvider.isLoading ? null : () => _executeTransfer(simulate: true),
+                onPressed: txProvider.isLoading ? null : () => _showTransferConfirmation(simulate: true),
                 icon: const Icon(Icons.science_outlined, color: AppTheme.textSecondary, size: 18),
                 label: Text(
                   'Simulate Instant Transfer (Demo)',

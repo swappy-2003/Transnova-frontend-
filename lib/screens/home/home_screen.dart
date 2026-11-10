@@ -9,7 +9,9 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/wallet_provider.dart';
 import 'widgets/balance_card.dart';
 import 'widgets/promo_banner.dart';
+import 'widgets/razorpay_topup_modal.dart';
 import 'widgets/receive_modal.dart';
+import 'widgets/remittance_modal.dart';
 import 'widgets/services_grid.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -389,9 +391,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Special Promo / Big Sale Banner
+                    // Special Promo / High-Fidelity Carousel matching Figma
                     PromoBanner(
-                      onClaim: () => widget.onNavigateTab(1),
+                      onTransfer: () => widget.onNavigateTab(1),
+                      onTopUp: () => RazorpayTopUpModal.show(context),
+                      onRemit: () => RemittanceModal.show(context),
                     ),
                     const SizedBox(height: 28),
 

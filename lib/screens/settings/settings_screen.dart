@@ -7,6 +7,7 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/wallet_provider.dart';
+import '../../services/api_client.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/app_top_bar.dart';
 
@@ -269,6 +270,59 @@ class SettingsScreen extends StatelessWidget {
 
               // API Configuration
               _buildSectionHeader('Network & Server'),
+              FutureBuilder<bool>(
+                future: ApiClient().checkHealth(),
+                builder: (context, snapshot) {
+                  final isOnline = snapshot.data == true;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Backend Health',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: snapshot.connectionState == ConnectionState.waiting
+                                    ? Colors.amber
+                                    : (isOnline ? AppTheme.accent : AppTheme.error),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              snapshot.connectionState == ConnectionState.waiting
+                                  ? 'Checking...'
+                                  : (isOnline ? 'Connected' : 'Offline'),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: isOnline ? AppTheme.accent : AppTheme.error,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(14),

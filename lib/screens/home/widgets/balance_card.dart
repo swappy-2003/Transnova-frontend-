@@ -201,20 +201,39 @@ class _BalanceCardState extends State<BalanceCard> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                // Formatted Amount
+                // Formatted Amount with smooth counter animation
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text(
-                      _hideBalance ? '••••••••' : currencyFormatter.format(widget.usdcBalance),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.5,
+                    if (_hideBalance)
+                      Text(
+                        '••••••••',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      )
+                    else
+                      TweenAnimationBuilder<double>(
+                        key: ValueKey(widget.usdcBalance),
+                        tween: Tween<double>(begin: 0, end: widget.usdcBalance),
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, _) {
+                          return Text(
+                            currencyFormatter.format(value),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                          );
+                        },
                       ),
-                    ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

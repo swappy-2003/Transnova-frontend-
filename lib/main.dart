@@ -59,6 +59,36 @@ class TransnovaApp extends StatelessWidget {
         title: 'Transnova E-Wallet',
         debugShowCheckedModeBanner: false, // Hides the debug banner in top right corner
         theme: AppTheme.lightTheme, // Applies the high-fidelity Figma Fintech Coral theme
+        builder: (context, child) {
+          final size = MediaQuery.of(context).size;
+          // On desktop / wide web browsers, frame the mobile app into a modern smartphone viewport
+          if (size.width > 500) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF0F2F6),
+              body: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 430, maxHeight: 920),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 38,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                    border: Border.all(color: const Color(0xFFE2E5EB), width: 1.5),
+                  ),
+                  child: child!,
+                ),
+              ),
+            );
+          }
+          return child!;
+        },
         home: const SplashScreen(), // Starts with the animated splash screen to check session
       ),
     );
