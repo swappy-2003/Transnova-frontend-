@@ -48,6 +48,12 @@ class ApiConfig {
   }
 
   // ==========================================
+  // SYSTEM HEALTH
+  // ==========================================
+  /// Backend server health check endpoint
+  static const String health = '/health';
+
+  // ==========================================
   // AUTHENTICATION & DEV ENDPOINTS
   // ==========================================
   /// Dev helper: Register a new Firebase Auth test user

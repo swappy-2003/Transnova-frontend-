@@ -90,6 +90,16 @@ class ApiClient {
     await prefs.setString(_prefTokenKey, token);
   }
 
+  /// Performs a health check against GET /health on the backend
+  Future<bool> checkHealth() async {
+    try {
+      final response = await _dio.get(ApiConfig.health);
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Clears token on logout
   Future<void> clearToken() async {
     _token = null;
