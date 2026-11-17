@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/wallet_provider.dart';
+import '../../services/user_service.dart';
 import '../../widgets/app_top_bar.dart';
 
 class SendContact {
@@ -35,6 +36,7 @@ class _SendScreenState extends State<SendScreen> {
 
   bool _isValidatingAddress = false;
   bool? _isAddressValid;
+  String? _recipientDisplayName;
   bool _isEstimatingFee = false;
   String _selectedFeeTier = 'medium';
 
@@ -77,16 +79,38 @@ class _SendScreenState extends State<SendScreen> {
     setState(() {
       _isValidatingAddress = true;
       _isAddressValid = null;
+      _recipientDisplayName = null;
     });
 
     if (_isEmail(input)) {
       final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
       final valid = emailRegex.hasMatch(input);
-      if (!mounted) return;
-      setState(() {
-        _isValidatingAddress = false;
-        _isAddressValid = valid;
-      });
+      if (!valid) {
+        if (!mounted) return;
+        setState(() {
+          _isValidatingAddress = false;
+          _isAddressValid = false;
+        });
+        return;
+      }
+
+      try {
+        final recipient = await UserService().resolveRecipientByEmail(input);
+        if (!mounted) return;
+        setState(() {
+          _isValidatingAddress = false;
+          _isAddressValid = true;
+          _recipientDisplayName = recipient.displayName.isNotEmpty
+              ? recipient.displayName
+              : null;
+        });
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _isValidatingAddress = false;
+          _isAddressValid = true;
+        });
+      }
       return;
     }
 
@@ -732,7 +756,9 @@ class _SendScreenState extends State<SendScreen> {
                     Text(
                       _isAddressValid!
                           ? (_isEmail(_addressController.text.trim())
-                              ? 'Valid Transnova recipient email'
+                              ? (_recipientDisplayName != null
+                                  ? 'Verified: $_recipientDisplayName'
+                                  : 'Valid Transnova recipient email')
                               : 'Valid Polygon address')
                           : (_isEmail(_addressController.text.trim())
                               ? 'Invalid email format'

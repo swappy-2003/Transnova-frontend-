@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:uuid/uuid.dart';
 import '../config/api_config.dart';
 import '../models/razorpay_model.dart';
+import '../models/receipt_model.dart';
 import 'api_client.dart';
 
 /// Razorpay Payment Gateway Service
@@ -10,8 +12,10 @@ import 'api_client.dart';
 /// 2. Complete payment in checkout modal / webview
 /// 3. Verify cryptographic HMAC signature on backend (`/api/v1/razorpay/verify-payment`)
 /// 4. Query payment history (`/api/v1/razorpay/history`)
+/// 5. Fetch verified receipt (`/api/v1/razorpay/payment/:orderId/receipt`)
 class RazorpayService {
   final ApiClient _client = ApiClient();
+  final Uuid _uuid = const Uuid();
 
   /// Create a new Razorpay payment order for INR fiat deposit
   Future<RazorpayOrderResponse> createOrder(double amount) async {
@@ -21,6 +25,11 @@ class RazorpayService {
         data: {
           'amount': amount,
         },
+        options: Options(
+          headers: {
+            'Idempotency-Key': _uuid.v4(),
+          },
+        ),
       );
 
       final data = response.data as Map<String, dynamic>;
@@ -78,6 +87,18 @@ class RazorpayService {
           .toList();
     } on DioException catch (e) {
       throw e.error ?? 'Failed to fetch Razorpay history';
+    }
+  }
+
+  /// Fetch receipt for a specific Razorpay order
+  Future<RazorpayReceiptModel> getReceipt(String orderId) async {
+    try {
+      final response = await _client.dio.get(ApiConfig.razorpayReceipt(orderId));
+      final data = response.data as Map<String, dynamic>;
+      final receiptJson = data['receipt'] as Map<String, dynamic>;
+      return RazorpayReceiptModel.fromJson(receiptJson);
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to fetch Razorpay receipt';
     }
   }
 }

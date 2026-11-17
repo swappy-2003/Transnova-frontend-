@@ -62,6 +62,12 @@ class ApiConfig {
   /// Dev helper: Sign in and receive a Firebase Auth ID token
   static const String devToken = '/api/v1/dev/firebase-token';
 
+  /// Dev helper: Fund demo USDC into sandbox ledger (when DEMO_MONEY_MODE is active)
+  static const String devDemoFund = '/api/v1/dev/demo/fund';
+
+  /// Resolve public wallet address and display name for a recipient by email
+  static String userRecipient(String email) => '/api/v1/users/recipient?email=${Uri.encodeComponent(email)}';
+
   /// Synchronize Firebase authenticated user profile with MongoDB backend
   static const String authSync = '/api/v1/auth/sync';
 
@@ -91,6 +97,9 @@ class ApiConfig {
   // ==========================================
   /// Fetch transaction activity history list
   static const String transactions = '/api/v1/transactions';
+
+  /// Fetch receipt for a specific transaction
+  static String transactionReceipt(String txId) => '/api/v1/transactions/$txId/receipt';
 
   /// Estimate Circle Polygon Amoy transfer gas fee (low, medium, high)
   static const String estimateFee = '/api/v1/transactions/estimate-fee';
@@ -152,4 +161,7 @@ class ApiConfig {
 
   /// Fetch a specific Razorpay payment by order ID
   static String razorpayPayment(String orderId) => '/api/v1/razorpay/payment/$orderId';
+
+  /// Fetch receipt for a specific Razorpay payment
+  static String razorpayReceipt(String orderId) => '/api/v1/razorpay/payment/$orderId/receipt';
 }

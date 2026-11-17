@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:uuid/uuid.dart';
 import '../config/api_config.dart';
 import '../models/fee_estimate_model.dart';
+import '../models/receipt_model.dart';
 import '../models/transaction_model.dart';
 import 'api_client.dart';
 
 class TransactionService {
   final ApiClient _client = ApiClient();
+  final Uuid _uuid = const Uuid();
 
   /// Estimate Circle transfer gas/network fee (by wallet address or registered recipient email)
   Future<FeeEstimateModel> estimateFee({
@@ -57,9 +60,15 @@ class TransactionService {
         payload['recipientEmail'] = recipientEmail.trim();
       }
 
+      final idempotencyKey = _uuid.v4();
       final response = await _client.dio.post(
         ApiConfig.circleTransfer,
         data: payload,
+        options: Options(
+          headers: {
+            'Idempotency-Key': idempotencyKey,
+          },
+        ),
       );
 
       final data = response.data as Map<String, dynamic>;
@@ -106,7 +115,7 @@ class TransactionService {
     }
   }
 
-  /// Fetch all transactions for the authenticated user
+  /// Fetch transaction activity history list
   Future<List<TransactionModel>> getTransactions() async {
     try {
       final response = await _client.dio.get(ApiConfig.transactions);
@@ -118,6 +127,37 @@ class TransactionService {
           .toList();
     } on DioException catch (e) {
       throw e.error ?? 'Failed to fetch transactions';
+    }
+  }
+
+  /// Fetch immutable transaction receipt by ID
+  Future<TransactionReceiptModel> getTransactionReceipt(String transactionId) async {
+    try {
+      final response = await _client.dio.get(ApiConfig.transactionReceipt(transactionId));
+      final data = response.data as Map<String, dynamic>;
+      final receiptJson = data['receipt'] as Map<String, dynamic>;
+      return TransactionReceiptModel.fromJson(receiptJson);
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to fetch transaction receipt';
+    }
+  }
+
+  /// Dev helper: Fund demo USDC into user wallet ledger
+  Future<Map<String, dynamic>> fundDemoUsdc({
+    required String walletId,
+    required double amount,
+  }) async {
+    try {
+      final response = await _client.dio.post(
+        ApiConfig.devDemoFund,
+        data: {
+          'walletId': walletId,
+          'amount': amount,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw e.error ?? 'Failed to fund demo USDC';
     }
   }
 }

@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:uuid/uuid.dart';
 import '../config/api_config.dart';
 import '../models/offramp_model.dart';
 import 'api_client.dart';
 
 class OfframpService {
   final ApiClient _client = ApiClient();
+  final Uuid _uuid = const Uuid();
 
   /// Create Crossmint ACH payment method
   Future<OfframpPaymentMethod> createPaymentMethod({
@@ -71,6 +73,11 @@ class OfframpService {
           'chain': chain,
           'currency': currency,
         },
+        options: Options(
+          headers: {
+            'Idempotency-Key': _uuid.v4(),
+          },
+        ),
       );
 
       final data = response.data as Map<String, dynamic>;
