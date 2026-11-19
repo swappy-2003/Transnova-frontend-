@@ -350,10 +350,14 @@ flutter run -d android
 ## 🔧 Configuration & Environment Variables
 
 ### Dynamic Base URL Switcher
-You do not need to recompile the application to change the backend target:
+By default, the application is linked to the deployed Render backend:
+```
+https://transnova-backend.onrender.com
+```
+You can switch between Render Cloud and Localhost at any time:
 1. On the **Login Screen**, tap the **Settings** gear icon in the top right.
 2. Or go to **Settings Screen** inside the app -> **Network & Server** -> **Change**.
-3. Enter your target URL (e.g. `http://localhost:5001` or your deployed server `https://api.transnova.com`) and tap **Save**.
+3. Tap **☁️ Render** (`https://transnova-backend.onrender.com`) or **💻 Localhost** (`http://localhost:5001`), then tap **Save**.
 4. The setting persists across app restarts using `SharedPreferences`.
 
 ---

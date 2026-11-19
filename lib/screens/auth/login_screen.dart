@@ -71,13 +71,32 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Set the backend base URL (default: http://localhost:5001)',
+              'Set the backend base URL (default: Render Cloud)',
               style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                ActionChip(
+                  label: const Text('☁️ Render', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  backgroundColor: AppTheme.primaryLight,
+                  onPressed: () {
+                    textController.text = ApiConfig.deployedUrl;
+                  },
+                ),
+                const SizedBox(width: 8),
+                ActionChip(
+                  label: const Text('💻 Localhost', style: TextStyle(fontSize: 11)),
+                  onPressed: () {
+                    textController.text = ApiConfig.defaultLocalOther;
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             TextField(
               controller: textController,
-              decoration: const InputDecoration(hintText: 'http://localhost:5001'),
+              decoration: const InputDecoration(hintText: 'https://transnova-backend.onrender.com'),
             ),
           ],
         ),

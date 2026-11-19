@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Centralized API Configuration & Endpoints Registry
@@ -8,16 +7,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 2. Persisting custom user-defined base URLs via SharedPreferences so you can switch backend targets easily.
 /// 3. Providing a single source of truth for all REST API endpoint paths.
 class ApiConfig {
+  /// Production Deployed Render backend URL
+  static const String deployedUrl = 'https://transnova-backend.onrender.com';
+
   // 10.0.2.2 is Android emulator's special loopback IP to reach the host computer's localhost.
-  static const String _defaultLocalAndroid = 'http://10.0.2.2:5001';
+  static const String defaultLocalAndroid = 'http://10.0.2.2:5001';
 
   // Standard localhost for Flutter Web, macOS Desktop, iOS Simulator, and local testing.
-  static const String _defaultLocalOther = 'http://localhost:5001';
+  static const String defaultLocalOther = 'http://localhost:5001';
 
   // Key used to store custom URL in local phone storage.
-  static const String _prefKeyBaseUrl = 'custom_base_url';
+  static const String _prefKeyBaseUrl = 'custom_base_url_v2';
 
-  static String _baseUrl = '';
+  static String _baseUrl = deployedUrl;
 
   /// Loads the saved base URL from SharedPreferences or picks the appropriate default.
   static Future<void> init() async {
@@ -25,15 +27,11 @@ class ApiConfig {
     final saved = prefs.getString(_prefKeyBaseUrl);
 
     if (saved != null && saved.isNotEmpty) {
-      _baseUrl = saved;
+      _baseUrl = saved.trim().replaceAll(RegExp(r'/+$'), '');
     } else {
-      if (kIsWeb) {
-        _baseUrl = _defaultLocalOther;
-      } else {
-        _baseUrl = (defaultTargetPlatform == TargetPlatform.android)
-            ? _defaultLocalAndroid
-            : _defaultLocalOther;
-      }
+      // Default to deployed Render backend
+      _baseUrl = deployedUrl;
+      await prefs.setString(_prefKeyBaseUrl, _baseUrl);
     }
   }
 
@@ -42,7 +40,7 @@ class ApiConfig {
 
   /// Updates and persists the backend base URL at runtime.
   static Future<void> setBaseUrl(String url) async {
-    _baseUrl = url.trim();
+    _baseUrl = url.trim().replaceAll(RegExp(r'/+$'), '');
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefKeyBaseUrl, _baseUrl);
   }

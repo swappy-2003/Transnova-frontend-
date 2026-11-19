@@ -28,11 +28,36 @@ class SettingsScreen extends StatelessWidget {
           'API Server URL',
           style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary, fontWeight: FontWeight.w700),
         ),
-        content: TextField(
-          controller: textController,
-          decoration: const InputDecoration(
-            hintText: 'e.g. http://localhost:5001',
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ActionChip(
+                  label: const Text('☁️ Render', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  backgroundColor: AppTheme.primaryLight,
+                  onPressed: () {
+                    textController.text = ApiConfig.deployedUrl;
+                  },
+                ),
+                const SizedBox(width: 8),
+                ActionChip(
+                  label: const Text('💻 Localhost', style: TextStyle(fontSize: 11)),
+                  onPressed: () {
+                    textController.text = ApiConfig.defaultLocalOther;
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(
+                hintText: 'https://transnova-backend.onrender.com',
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
