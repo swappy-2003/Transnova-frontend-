@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
@@ -45,58 +44,45 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Figma Splash Red Circular Emblem
             Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF4B4B), Color(0xFFFA5252)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+              width: 88,
+              height: 88,
+              decoration: const BoxDecoration(
+                color: AppTheme.brandBlack,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primary.withValues(alpha: 0.35),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
               ),
               child: const Center(
                 child: Icon(
                   Icons.bolt_rounded,
-                  size: 48,
-                  color: Colors.white,
+                  size: 46,
+                  color: AppTheme.primary,
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 22),
             Text(
               'Transnova',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 26,
+              style: AppTheme.displayStyle(
+                fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: AppTheme.textPrimary,
-                letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'High Fidelity Digital E-Wallet',
-              style: GoogleFonts.plusJakartaSans(
+              'Global Stablecoin & Cross-Border Wallet',
+              style: AppTheme.uiStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppTheme.textSecondary,
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
             const SizedBox(
               width: 22,
               height: 22,

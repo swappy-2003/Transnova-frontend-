@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
@@ -95,17 +94,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               Text(
                 'Join Transnova',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.displayStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
-                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Get your automated Circle Polygon Amoy smart account.',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.uiStyle(
                   fontSize: 14,
                   color: AppTheme.textSecondary,
                 ),
@@ -114,12 +112,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Name
               Text(
                 'Full Name',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _nameController,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textMuted, size: 20),
                   hintText: 'Jane Doe',
@@ -129,13 +127,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Email
               Text(
                 'Email Address',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.email_outlined, color: AppTheme.textMuted, size: 20),
                   hintText: 'jane@example.com',
@@ -145,13 +143,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Password
               Text(
                 'Password',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscure,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(color: AppTheme.textPrimary),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted, size: 20),
                   hintText: 'At least 6 characters',
@@ -170,21 +168,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onPressed: authProvider.isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppTheme.brandBlack,
                   minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: const StadiumBorder(),
                   elevation: 0,
-                  shadowColor: AppTheme.primary.withValues(alpha: 0.35),
                 ),
                 child: authProvider.isLoading
                     ? const SizedBox(
                         height: 22,
                         width: 22,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        child: CircularProgressIndicator(color: AppTheme.brandBlack, strokeWidth: 2.5),
                       )
                     : Text(
                         'Create Account',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: AppTheme.uiStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.brandBlack),
                       ),
               ),
               const SizedBox(height: 20),
@@ -193,14 +190,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   Text(
                     'Already have an account? ',
-                    style: GoogleFonts.plusJakartaSans(color: AppTheme.textSecondary, fontSize: 13),
+                    style: AppTheme.uiStyle(color: AppTheme.textSecondary, fontSize: 13),
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Text(
                       'Sign In',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: AppTheme.primary,
+                      style: AppTheme.uiStyle(
+                        color: AppTheme.primaryDark,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),

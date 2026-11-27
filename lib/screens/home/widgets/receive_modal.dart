@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../config/theme.dart';
 
@@ -18,7 +17,7 @@ class ReceiveModal extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.brandBlack,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -27,6 +26,21 @@ class ReceiveModal extends StatelessWidget {
             ? address
             : '0x71C83492864C62Fdf0159483B892aF829379e492',
         qrPayload: qrPayload,
+      ),
+    );
+  }
+
+  void _copy(BuildContext context, String addr) {
+    Clipboard.setData(ClipboardData(text: addr));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Address copied to clipboard!',
+          style: AppTheme.uiStyle(color: Colors.white),
+        ),
+        backgroundColor: AppTheme.brandBlack,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
@@ -42,7 +56,7 @@ class ReceiveModal extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -50,7 +64,7 @@ class ReceiveModal extends StatelessWidget {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFE2E5EB),
+                color: AppTheme.darkBorder,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -59,70 +73,64 @@ class ReceiveModal extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
+                  width: 34,
+                  height: 34,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.qr_code_2_rounded, color: AppTheme.primary, size: 18),
+                  child: const Icon(Icons.qr_code_2_rounded, color: AppTheme.brandBlack, size: 19),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   'Receive USDC',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppTheme.displayStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
-                color: AppTheme.accentLight,
-                borderRadius: BorderRadius.circular(20),
+                color: const Color(0xFF191C19),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppTheme.darkBorder),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 6,
-                    height: 6,
+                    width: 7,
+                    height: 7,
                     decoration: const BoxDecoration(
-                      color: AppTheme.accent,
+                      color: AppTheme.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'Polygon Amoy Smart Account',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppTheme.uiStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.accent,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 22),
-            // QR Code in soft container
+            // QR Code framed in crisp white with green eyes
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: AppTheme.border, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppTheme.primary, width: 2.5),
               ),
               child: QrImageView(
                 data: qrData,
@@ -131,32 +139,32 @@ class ReceiveModal extends StatelessWidget {
                 backgroundColor: Colors.white,
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.square,
-                  color: AppTheme.primary,
+                  color: AppTheme.primaryDark,
                 ),
                 dataModuleStyle: const QrDataModuleStyle(
                   dataModuleShape: QrDataModuleShape.circle,
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.brandBlack,
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             // Address Box
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7F8FB),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.border),
+                color: const Color(0xFF191C19),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.darkBorder),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       effectiveAddr,
-                      style: GoogleFonts.jetBrainsMono(
+                      style: AppTheme.monoStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppTheme.textPrimary,
+                        color: AppTheme.darkSurfaceVariantText,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -164,54 +172,33 @@ class ReceiveModal extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: effectiveAddr));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Address copied to clipboard!'),
-                          backgroundColor: AppTheme.textPrimary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _copy(context, effectiveAddr),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.copy_rounded, size: 16, color: AppTheme.primary),
+                      child: const Icon(Icons.copy_rounded, size: 16, color: AppTheme.brandBlack),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 18),
-            // Action Buttons: Copy Address & Done
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: effectiveAddr));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Address copied to clipboard!'),
-                          backgroundColor: AppTheme.textPrimary,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                      );
-                    },
+                    onPressed: () => _copy(context, effectiveAddr),
                     icon: const Icon(Icons.copy_rounded, size: 16),
                     label: const Text('Copy'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.primary,
-                      side: const BorderSide(color: AppTheme.primary),
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: AppTheme.darkBorder),
                       minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),
@@ -223,9 +210,9 @@ class ReceiveModal extends StatelessWidget {
                     label: const Text('Done'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppTheme.brandBlack,
                       minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),

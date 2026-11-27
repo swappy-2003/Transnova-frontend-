@@ -1,27 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../config/theme.dart';
 
-/// E-Wallet Balance Card
+/// IntPay-styled Global Wallet Hero Card
 ///
-/// This widget renders the main floating card on the dashboard:
-/// 1. "Total Balance" with privacy eye toggle (hide/show balance).
-/// 2. Live "Polygon Amoy" blockchain network indicator badge.
-/// 3. Huge formatted USDC balance (e.g. $1,250.00 USDC).
-/// 4. Circle Smart Contract Account (SCA) address chip with one-tap copy button.
-/// 5. Row of 4 primary action buttons:
-///    - Send (Transfer)
-///    - Top Up (Buy)
-///    - Withdraw (Cash Out)
-///    - Receive (QR Code Modal)
+/// Features:
+/// - Vibrant IntPay Green (#12B76A) 24px rounded hero surface
+/// - Deep Obsidian (#101310) tabular balance & high-contrast CTAs
+/// - Privacy eye toggle, Polygon Amoy badge, and copyable SCA address chip
 class BalanceCard extends StatefulWidget {
   final double usdcBalance;
   final String walletAddress;
   final bool isLoading;
   final VoidCallback onRefresh;
   final VoidCallback onReceive;
+  final VoidCallback? onScan;
   final VoidCallback onSend;
   final VoidCallback onBuy;
   final VoidCallback onCashOut;
@@ -33,6 +27,7 @@ class BalanceCard extends StatefulWidget {
     required this.isLoading,
     required this.onRefresh,
     required this.onReceive,
+    this.onScan,
     required this.onSend,
     required this.onBuy,
     required this.onCashOut,
@@ -43,17 +38,14 @@ class BalanceCard extends StatefulWidget {
 }
 
 class _BalanceCardState extends State<BalanceCard> {
-  // Toggle to hide or show balance for privacy in public spaces
   bool _hideBalance = false;
 
-  /// Helper to shorten EVM addresses: e.g. 0x71C834...392A
   String _formatAddress(String addr) {
     if (addr.isEmpty) return '0x71C8...392A';
     if (addr.length < 12) return addr;
     return '${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}';
   }
 
-  /// Copies full blockchain address to phone clipboard and shows visual toast
   void _copyAddress(BuildContext context) {
     final addr = widget.walletAddress.isNotEmpty
         ? widget.walletAddress
@@ -63,57 +55,51 @@ class _BalanceCardState extends State<BalanceCard> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+            const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 20),
             const SizedBox(width: 8),
-            Text('Smart Account address copied!', style: GoogleFonts.plusJakartaSans()),
+            Text(
+              'Smart Account address copied!',
+              style: AppTheme.uiStyle(color: Colors.white),
+            ),
           ],
         ),
-        backgroundColor: AppTheme.textPrimary,
+        backgroundColor: AppTheme.brandBlack,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  /// Reusable builder for the 4 circular squircle action buttons below the card
-  Widget _buildActionButton({
+  Widget _buildQuickTile({
     required IconData icon,
     required String label,
-    required Color color,
-    required Color bgColor,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: AppTheme.surfaceLow,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.border),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: AppTheme.brandBlack, size: 22),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTheme.uiStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
                 color: AppTheme.textPrimary,
               ),
             ),
@@ -127,204 +113,207 @@ class _BalanceCardState extends State<BalanceCard> {
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(color: AppTheme.border, width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top section: Balance + Address chip + Network pill
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Total Balance',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textSecondary,
-                          ),
+    return Column(
+      children: [
+        // Vibrant Green Hero Card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.primary,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row: Wallet title + eye toggle & Polygon Amoy dark pill
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 18,
+                        color: AppTheme.brandBlack,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Global Wallet • USDC',
+                        style: AppTheme.uiStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.brandBlack,
                         ),
-                        const SizedBox(width: 6),
-                        GestureDetector(
-                          onTap: () => setState(() => _hideBalance = !_hideBalance),
-                          child: Icon(
-                            _hideBalance ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            size: 16,
-                            color: AppTheme.textMuted,
-                          ),
+                      ),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () => setState(() => _hideBalance = !_hideBalance),
+                        child: Icon(
+                          _hideBalance ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          size: 17,
+                          color: AppTheme.brandBlack.withValues(alpha: 0.75),
                         ),
-                      ],
-                    ),
-                    // Polygon Amoy Status Pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: widget.onRefresh,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppTheme.accentLight,
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppTheme.brandBlack,
+                        borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
                           Text(
                             'Polygon Amoy',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppTheme.uiStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.accent,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                           ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.north_east_rounded, size: 13, color: Colors.white),
                         ],
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Hero Balance Figure (Mulish 34px tabular)
+              if (_hideBalance)
+                Text(
+                  '••••••••',
+                  style: AppTheme.displayStyle(
+                    fontSize: 34,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.brandBlack,
+                  ),
+                )
+              else
+                TweenAnimationBuilder<double>(
+                  key: ValueKey(widget.usdcBalance),
+                  tween: Tween<double>(begin: 0, end: widget.usdcBalance),
+                  duration: const Duration(milliseconds: 650),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) {
+                    return Text(
+                      currencyFormatter.format(value),
+                      style: AppTheme.displayStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.brandBlack,
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 10),
-                // Formatted Amount with smooth counter animation
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+              const SizedBox(height: 6),
+
+              // Copyable Smart Account Chip
+              GestureDetector(
+                onTap: () => _copyAddress(context),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (_hideBalance)
-                      Text(
-                        '••••••••',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
-                      )
-                    else
-                      TweenAnimationBuilder<double>(
-                        key: ValueKey(widget.usdcBalance),
-                        tween: Tween<double>(begin: 0, end: widget.usdcBalance),
-                        duration: const Duration(milliseconds: 700),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, value, _) {
-                          return Text(
-                            currencyFormatter.format(value),
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textPrimary,
-                              letterSpacing: -0.5,
-                            ),
-                          );
-                        },
+                    Text(
+                      'SCA: ${_formatAddress(widget.walletAddress)}',
+                      style: AppTheme.monoStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.brandBlack.withValues(alpha: 0.8),
                       ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'USDC',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.primary,
-                        ),
-                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.copy_rounded,
+                      size: 13,
+                      color: AppTheme.brandBlack.withValues(alpha: 0.8),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                // Circle Smart Contract Account Address Chip
-                GestureDetector(
-                  onTap: () => _copyAddress(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7F8FA),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE8EAF0)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.shield_outlined, size: 14, color: AppTheme.textSecondary),
-                        const SizedBox(width: 6),
-                        Text(
-                          'SCA: ${_formatAddress(widget.walletAddress)}',
-                          style: GoogleFonts.jetBrainsMono(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textSecondary,
-                          ),
+              ),
+              const SizedBox(height: 18),
+
+              // Primary Pill Action Buttons (Send Money & Add Money)
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: widget.onSend,
+                      icon: const Icon(Icons.send_rounded, size: 17),
+                      label: const Text('Send Money'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandBlack,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 44),
+                        shape: const StadiumBorder(),
+                        textStyle: AppTheme.uiStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.copy_rounded, size: 13, color: AppTheme.primary),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: widget.onBuy,
+                      icon: const Icon(Icons.add_rounded, size: 19),
+                      label: const Text('Add Money'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppTheme.brandBlack,
+                        minimumSize: const Size(0, 44),
+                        shape: const StadiumBorder(),
+                        textStyle: AppTheme.uiStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const Divider(height: 1, thickness: 1, color: AppTheme.divider),
-          // Action Buttons: Send, Top Up, Withdraw, Receive
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildActionButton(
-                  icon: Icons.arrow_upward_rounded,
-                  label: 'Send',
-                  color: AppTheme.primary,
-                  bgColor: AppTheme.primaryLight,
-                  onTap: widget.onSend,
-                ),
-                _buildActionButton(
-                  icon: Icons.add_rounded,
-                  label: 'Top Up',
-                  color: AppTheme.accent,
-                  bgColor: AppTheme.accentLight,
-                  onTap: widget.onBuy,
-                ),
-                _buildActionButton(
-                  icon: Icons.account_balance_rounded,
-                  label: 'Withdraw',
-                  color: AppTheme.warning,
-                  bgColor: AppTheme.warningLight,
-                  onTap: widget.onCashOut,
-                ),
-                _buildActionButton(
-                  icon: Icons.qr_code_2_rounded,
-                  label: 'Receive',
-                  color: AppTheme.info,
-                  bgColor: AppTheme.infoLight,
-                  onTap: widget.onReceive,
-                ),
-              ],
+        ),
+        const SizedBox(height: 16),
+
+        // 4 Quick Action Tiles (Send, Top Up, Withdraw, Receive)
+        Row(
+          children: [
+            _buildQuickTile(
+              icon: Icons.qr_code_scanner_rounded,
+              label: 'Scan QR',
+              onTap: widget.onScan ?? widget.onReceive,
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 8),
+            _buildQuickTile(
+              icon: Icons.arrow_upward_rounded,
+              label: 'Transfer',
+              onTap: widget.onSend,
+            ),
+            const SizedBox(width: 8),
+            _buildQuickTile(
+              icon: Icons.account_balance_outlined,
+              label: 'Cash Out',
+              onTap: widget.onCashOut,
+            ),
+            const SizedBox(width: 8),
+            _buildQuickTile(
+              icon: Icons.south_west_rounded,
+              label: 'Receive',
+              onTap: widget.onReceive,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

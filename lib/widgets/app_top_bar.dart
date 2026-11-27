@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../config/theme.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -17,25 +16,21 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(60);
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: AppTheme.primary,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x25FF4B4B),
-            blurRadius: 10,
-            offset: Offset(0, 3),
-          ),
-        ],
+        color: AppTheme.surface,
+        border: Border(
+          bottom: BorderSide(color: AppTheme.border, width: 1),
+        ),
       ),
       child: SafeArea(
         bottom: false,
         child: Container(
-          height: 60,
+          height: 62,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -43,34 +38,36 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               if (showBackButton)
                 InkWell(
                   onTap: onBack ?? () => Navigator.maybePop(context),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(999),
                   child: Container(
-                    width: 38,
-                    height: 38,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: AppTheme.surfaceLow,
                       shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.border),
                     ),
                     child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: Colors.white,
-                      size: 16,
+                      Icons.arrow_back_rounded,
+                      color: AppTheme.textPrimary,
+                      size: 20,
                     ),
                   ),
                 )
               else
-                const SizedBox(width: 38),
+                const SizedBox(width: 40),
               Text(
                 title,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.uiStyle(
                   fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.1,
                 ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: actions ?? [const SizedBox(width: 38)],
+                children: actions ?? [const SizedBox(width: 40)],
               ),
             ],
           ),
@@ -79,4 +76,3 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-

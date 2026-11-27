@@ -179,17 +179,17 @@ class _ActivityScreenState extends State<ActivityScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         margin: const EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppTheme.brandBlack : AppTheme.surfaceLow,
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? AppTheme.primary : AppTheme.border,
+            color: isSelected ? AppTheme.brandBlack : AppTheme.border,
           ),
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppTheme.uiStyle(
             fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : AppTheme.textSecondary,
           ),
         ),
@@ -225,7 +225,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         showBackButton: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: const Icon(Icons.refresh_rounded, color: AppTheme.textPrimary),
             onPressed: () => txProvider.fetchTransactions(),
           ),
         ],

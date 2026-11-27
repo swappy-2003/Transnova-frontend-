@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../config/theme.dart';
 import 'razorpay_topup_modal.dart';
 import 'remittance_modal.dart';
@@ -7,15 +6,17 @@ import 'remittance_modal.dart';
 class ServiceItem {
   final String title;
   final IconData icon;
-  final Color color;
+  final Color iconColor;
   final Color bgColor;
+  final String? badge;
   final VoidCallback onTap;
 
   const ServiceItem({
     required this.title,
     required this.icon,
-    required this.color,
+    required this.iconColor,
     required this.bgColor,
+    this.badge,
     required this.onTap,
   });
 }
@@ -41,10 +42,13 @@ class ServicesGrid extends StatelessWidget {
   void _showComingSoon(BuildContext context, String serviceName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$serviceName will be available in the next release!'),
-        backgroundColor: AppTheme.textPrimary,
+        content: Text(
+          '$serviceName will be available in the next release!',
+          style: AppTheme.uiStyle(color: Colors.white),
+        ),
+        backgroundColor: AppTheme.brandBlack,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -56,57 +60,58 @@ class ServicesGrid extends StatelessWidget {
       ServiceItem(
         title: 'Transfer',
         icon: Icons.send_rounded,
-        color: AppTheme.primary,
+        iconColor: AppTheme.brandBlack,
         bgColor: AppTheme.primaryLight,
         onTap: onTransfer,
       ),
       ServiceItem(
         title: 'Top Up',
-        icon: Icons.account_balance_wallet_rounded,
-        color: AppTheme.accent,
-        bgColor: AppTheme.accentLight,
+        icon: Icons.account_balance_wallet_outlined,
+        iconColor: AppTheme.brandBlack,
+        bgColor: AppTheme.surfaceLow,
         onTap: onTopUp,
       ),
       ServiceItem(
         title: 'UPI TopUp',
         icon: Icons.flash_on_rounded,
-        color: const Color(0xFF0C2340),
-        bgColor: const Color(0xFFE8EDF5),
+        iconColor: AppTheme.brandBlack,
+        bgColor: AppTheme.rewardYellowSoft,
+        badge: 'INR',
         onTap: onRazorpay ?? () => RazorpayTopUpModal.show(context),
       ),
       ServiceItem(
         title: 'Remittance',
         icon: Icons.public_rounded,
-        color: const Color(0xFF6C5CE7),
-        bgColor: const Color(0xFFF1F0FD),
+        iconColor: AppTheme.primaryDark,
+        bgColor: AppTheme.surfaceHigh,
         onTap: onRemittance ?? () => RemittanceModal.show(context),
       ),
       ServiceItem(
         title: 'Withdraw',
-        icon: Icons.credit_card_rounded,
-        color: AppTheme.warning,
-        bgColor: AppTheme.warningLight,
+        icon: Icons.account_balance_outlined,
+        iconColor: AppTheme.brandBlack,
+        bgColor: AppTheme.surfaceLow,
         onTap: onWithdraw,
       ),
       ServiceItem(
         title: 'QR Pay',
-        icon: Icons.qr_code_scanner_rounded,
-        color: AppTheme.info,
-        bgColor: AppTheme.infoLight,
+        icon: Icons.qr_code_2_rounded,
+        iconColor: AppTheme.brandBlack,
+        bgColor: AppTheme.surfaceLow,
         onTap: onScan,
       ),
       ServiceItem(
         title: 'Electricity',
         icon: Icons.bolt_rounded,
-        color: const Color(0xFFFD79A8),
-        bgColor: const Color(0xFFFFF0F5),
+        iconColor: AppTheme.textSecondary,
+        bgColor: AppTheme.surfaceLow,
         onTap: () => _showComingSoon(context, 'Electricity Bill'),
       ),
       ServiceItem(
         title: 'More',
         icon: Icons.grid_view_rounded,
-        color: const Color(0xFF00CEC9),
-        bgColor: const Color(0xFFEBFBFB),
+        iconColor: AppTheme.textSecondary,
+        bgColor: AppTheme.surfaceLow,
         onTap: () => _showComingSoon(context, 'DeFi Services'),
       ),
     ];
@@ -114,61 +119,89 @@ class ServicesGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Services',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-          ],
+        Text(
+          'Services',
+          style: AppTheme.uiStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: services.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 4,
-            childAspectRatio: 0.85,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 12,
+            childAspectRatio: 0.88,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 10,
           ),
           itemBuilder: (context, index) {
             final item = services[index];
             return InkWell(
               onTap: item.onTap,
               borderRadius: BorderRadius.circular(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: item.bgColor,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: item.color.withValues(alpha: 0.15)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.border),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: item.bgColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: Icon(item.icon, color: item.iconColor, size: 20),
+                        ),
+                        if (item.badge != null)
+                          Positioned(
+                            right: -6,
+                            bottom: -2,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandBlack,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                item.badge!,
+                                style: AppTheme.uiStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    child: Icon(item.icon, color: item.color, size: 24),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    item.title,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
+                    const SizedBox(height: 6),
+                    Text(
+                      item.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTheme.uiStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -177,4 +210,3 @@ class ServicesGrid extends StatelessWidget {
     );
   }
 }
-

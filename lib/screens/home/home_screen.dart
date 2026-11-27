@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
@@ -16,8 +15,13 @@ import 'widgets/services_grid.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int) onNavigateTab;
+  final VoidCallback? onScanQr;
 
-  const HomeScreen({super.key, required this.onNavigateTab});
+  const HomeScreen({
+    super.key,
+    required this.onNavigateTab,
+    this.onScanQr,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -40,31 +44,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedFilter = value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 140),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         margin: const EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppTheme.brandBlack : AppTheme.surfaceLow,
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? AppTheme.primary : AppTheme.border,
+            color: isSelected ? AppTheme.brandBlack : AppTheme.border,
             width: 1,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppTheme.primary.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppTheme.uiStyle(
             fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : AppTheme.textSecondary,
           ),
         ),
@@ -72,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTransactionTile(TransactionModel tx) {
+  Widget _buildTransactionRow(TransactionModel tx) {
     final currencyFormatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
     final isCredit = tx.type == 'payin';
 
@@ -83,51 +78,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
     switch (tx.type) {
       case 'payin':
-        icon = Icons.arrow_downward_rounded;
-        iconColor = AppTheme.accent;
-        bgColor = AppTheme.accentLight;
+        icon = Icons.south_west_rounded;
+        iconColor = AppTheme.onPrimaryLight;
+        bgColor = AppTheme.primaryLight;
         title = tx.description.isNotEmpty ? tx.description : 'USDC Deposit';
         break;
       case 'offramp':
-        icon = Icons.account_balance_rounded;
-        iconColor = AppTheme.warning;
-        bgColor = AppTheme.warningLight;
+        icon = Icons.account_balance_outlined;
+        iconColor = AppTheme.onRewardYellowSoft;
+        bgColor = AppTheme.rewardYellowSoft;
         title = tx.description.isNotEmpty ? tx.description : 'ACH Bank Cash Out';
         break;
       default:
-        icon = Icons.arrow_upward_rounded;
-        iconColor = AppTheme.primary;
-        bgColor = AppTheme.primaryLight;
+        icon = Icons.north_east_rounded;
+        iconColor = Colors.white;
+        bgColor = AppTheme.brandBlack;
         title = tx.description.isNotEmpty ? tx.description : 'Circle Transfer';
     }
 
-    final dateStr = DateFormat('MMM dd, hh:mm a').format(tx.createdAt ?? DateTime.now());
+    final dateStr = DateFormat('MMM dd • hh:mm a').format(tx.createdAt ?? DateTime.now());
+    final statusColor = tx.isCompleted
+        ? AppTheme.primaryLight
+        : tx.isFailed
+            ? AppTheme.errorLight
+            : AppTheme.rewardYellowSoft;
+    final statusTextColor = tx.isCompleted
+        ? AppTheme.onPrimaryLight
+        : tx.isFailed
+            ? AppTheme.error
+            : AppTheme.onRewardYellowSoft;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(14),
+              shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 22),
+            child: Icon(icon, color: iconColor, size: 19),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -136,20 +128,19 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                  style: AppTheme.uiStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   dateStr,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppTheme.uiStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -161,33 +152,25 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text(
                 '${isCredit ? "+" : "-"}${currencyFormatter.format(tx.amount)}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: isCredit ? AppTheme.accent : AppTheme.textPrimary,
+                style: AppTheme.displayStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: isCredit ? AppTheme.primaryDark : AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: tx.isCompleted
-                      ? AppTheme.accentLight
-                      : tx.isFailed
-                          ? const Color(0xFFFFEEEE)
-                          : AppTheme.warningLight,
-                  borderRadius: BorderRadius.circular(6),
+                  color: statusColor,
+                  borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  tx.status.toUpperCase(),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: tx.isCompleted
-                        ? AppTheme.accent
-                        : tx.isFailed
-                            ? AppTheme.error
-                            : AppTheme.warning,
+                  tx.status[0].toUpperCase() + tx.status.substring(1),
+                  style: AppTheme.uiStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: statusTextColor,
                   ),
                 ),
               ),
@@ -205,8 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final txProvider = context.watch<TransactionProvider>();
 
     final user = authProvider.user;
+    final displayName = user?.displayName.isNotEmpty == true ? user!.displayName : 'Demo User';
+    final initials = displayName.trim().isNotEmpty ? displayName.trim()[0].toUpperCase() : 'T';
 
-    // Filter transactions
     var filteredTxs = txProvider.transactions;
     if (_selectedFilter != 'all') {
       filteredTxs = filteredTxs.where((t) => t.type == _selectedFilter).toList();
@@ -214,289 +198,304 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: RefreshIndicator(
-        color: AppTheme.primary,
-        onRefresh: () async {
-          await Future.wait([
-            walletProvider.refreshBalance(),
-            txProvider.fetchTransactions(),
-          ]);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Coral Curved Header with Balance Card
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(20, 54, 20, 110),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFFFF4B4B), Color(0xFFFF5E5E), Color(0xFFFA5252)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(32),
-                        bottomRight: Radius.circular(32),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: AppTheme.primary,
+          onRefresh: () async {
+            await Future.wait([
+              walletProvider.refreshBalance(),
+              txProvider.fetchTransactions(),
+            ]);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 108),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Clean IntPay Top Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 46,
-                              height: 46,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceContainer,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: Center(
+                            child: Text(
+                              initials,
+                              style: AppTheme.displayStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.brandBlack,
                               ),
-                              child: const Icon(Icons.person_rounded, color: Colors.white, size: 26),
                             ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hello, ${user?.displayName.isNotEmpty == true ? user!.displayName : "Demo User"} 👋',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Good morning,',
+                              style: AppTheme.uiStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            Text(
+                              displayName,
+                              style: AppTheme.uiStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceLow,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: AppTheme.border),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.primary,
+                                  shape: BoxShape.circle,
                                 ),
-                                Text(
-                                  'Transnova Wallet',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Transnova',
+                                style: AppTheme.uiStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'All notifications are up to date!',
+                                  style: AppTheme.uiStyle(color: Colors.white),
+                                ),
+                                backgroundColor: AppTheme.brandBlack,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(999),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceLow,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppTheme.border),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: AppTheme.textPrimary,
+                                  size: 20,
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 9,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.rewardYellow,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 1.5),
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            // Notification Bell with indicator
-                            InkWell(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text('All notifications are up to date!'),
-                                    backgroundColor: AppTheme.textPrimary,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.18),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 20),
-                                    Positioned(
-                                      top: 8,
-                                      right: 8,
-                                      child: Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFFFD166),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            // Settings Button
-                            InkWell(
-                              onTap: () => widget.onNavigateTab(4), // Go to profile/settings
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.18),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.tune_rounded, color: Colors.white, size: 20),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  // Overlapping Balance Card
-                  Positioned(
-                    top: 116,
-                    left: 20,
-                    right: 20,
-                    child: BalanceCard(
-                      usdcBalance: walletProvider.usdcBalance,
-                      walletAddress: walletProvider.address,
-                      isLoading: walletProvider.isLoading,
-                      onRefresh: () => walletProvider.refreshBalance(),
-                      onReceive: () => ReceiveModal.show(
-                        context,
-                        walletProvider.address,
-                        walletProvider.qr?.rawPayload,
-                      ),
-                      onSend: () => widget.onNavigateTab(1),
-                      onBuy: () => widget.onNavigateTab(2),
-                      onCashOut: () => widget.onNavigateTab(3),
-                    ),
-                  ),
-                ],
-              ),
-              // Space below overlapping card
-              const SizedBox(height: 180),
+                  ],
+                ),
+                const SizedBox(height: 18),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Green Hero Balance Card + 4 Quick Tiles
+                BalanceCard(
+                  usdcBalance: walletProvider.usdcBalance,
+                  walletAddress: walletProvider.address,
+                  isLoading: walletProvider.isLoading,
+                  onRefresh: () => walletProvider.refreshBalance(),
+                  onReceive: () => ReceiveModal.show(
+                    context,
+                    walletProvider.address,
+                    walletProvider.qr?.rawPayload,
+                  ),
+                  onScan: widget.onScanQr,
+                  onSend: () => widget.onNavigateTab(1),
+                  onBuy: () => widget.onNavigateTab(2),
+                  onCashOut: () => widget.onNavigateTab(3),
+                ),
+                const SizedBox(height: 20),
+
+                // Services 4x2 Grid (preserving all original options)
+                ServicesGrid(
+                  onTransfer: () => widget.onNavigateTab(1),
+                  onTopUp: () => widget.onNavigateTab(2),
+                  onWithdraw: () => widget.onNavigateTab(3),
+                  onScan: widget.onScanQr ??
+                      () => ReceiveModal.show(
+                            context,
+                            walletProvider.address,
+                            walletProvider.qr?.rawPayload,
+                          ),
+                ),
+                const SizedBox(height: 18),
+
+                // Obsidian & Yellow Rewards Promo Carousel
+                PromoBanner(
+                  onTransfer: () => widget.onNavigateTab(1),
+                  onTopUp: () => RazorpayTopUpModal.show(context),
+                  onRemit: () => RemittanceModal.show(context),
+                ),
+                const SizedBox(height: 22),
+
+                // Recent Activity Header & Filter Chips
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Services 4x2 Grid (from Figma)
-                    ServicesGrid(
-                      onTransfer: () => widget.onNavigateTab(1),
-                      onTopUp: () => widget.onNavigateTab(2),
-                      onWithdraw: () => widget.onNavigateTab(3),
-                      onScan: () => ReceiveModal.show(
-                        context,
-                        walletProvider.address,
-                        walletProvider.qr?.rawPayload,
+                    Text(
+                      'Recent Activity',
+                      style: AppTheme.uiStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Special Promo / High-Fidelity Carousel matching Figma
-                    PromoBanner(
-                      onTransfer: () => widget.onNavigateTab(1),
-                      onTopUp: () => RazorpayTopUpModal.show(context),
-                      onRemit: () => RemittanceModal.show(context),
+                    GestureDetector(
+                      onTap: () => widget.onNavigateTab(4),
+                      child: Text(
+                        'See all',
+                        style: AppTheme.uiStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryDark,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 28),
+                  ],
+                ),
+                const SizedBox(height: 10),
 
-                    // Recent Activity Header & Filters
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('All', 'all'),
+                      _buildFilterChip('Transfers', 'transfer'),
+                      _buildFilterChip('Deposits', 'payin'),
+                      _buildFilterChip('Cash Out', 'offramp'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                if (filteredTxs.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceLow,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Column(
                       children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryLight,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.receipt_long_rounded,
+                            color: AppTheme.onPrimaryLight,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         Text(
-                          'Recent Activity',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                          'No transactions yet',
+                          style: AppTheme.uiStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                             color: AppTheme.textPrimary,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => widget.onNavigateTab(4), // Activity
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppTheme.primary,
-                            padding: EdgeInsets.zero,
+                        const SizedBox(height: 4),
+                        Text(
+                          'Deposit USDC or send a transfer to get started.',
+                          style: AppTheme.uiStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondary,
                           ),
-                          child: Text(
-                            'See All',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
-                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-
-                    // Category Filter Pills
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildFilterChip('All', 'all'),
-                          _buildFilterChip('Transfers', 'transfer'),
-                          _buildFilterChip('Deposits', 'payin'),
-                          _buildFilterChip('Cash Out', 'offramp'),
-                        ],
-                      ),
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceLow,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.border),
                     ),
-                    const SizedBox(height: 14),
-
-                    // Transactions list
-                    if (filteredTxs.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(28),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.border),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryLight,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary, size: 24),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No transactions found',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Deposit USDC or send a transfer to get started.',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                color: AppTheme.textSecondary,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filteredTxs.length,
-                        itemBuilder: (context, index) => _buildTransactionTile(filteredTxs[index]),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredTxs.length,
+                      separatorBuilder: (_, _) => const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: AppTheme.border,
                       ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ],
+                      itemBuilder: (context, index) => _buildTransactionRow(filteredTxs[index]),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

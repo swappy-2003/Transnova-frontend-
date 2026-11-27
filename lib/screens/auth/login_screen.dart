@@ -150,40 +150,34 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 8),
-              // Coral Logo Card
+              // Obsidian Logo Card
               Center(
                 child: Container(
                   width: 72,
                   height: 72,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF4B4B), Color(0xFFFA5252)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: AppTheme.brandBlack,
                     borderRadius: BorderRadius.circular(22),
-                    boxShadow: AppTheme.primaryShadow,
                   ),
-                  child: const Icon(Icons.wallet_rounded, size: 38, color: Colors.white),
+                  child: const Icon(Icons.account_balance_wallet_rounded, size: 36, color: AppTheme.primary),
                 ),
               ),
               const SizedBox(height: 24),
               Text(
                 'Welcome Back',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.displayStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
-                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Sign in to manage your Polygon Amoy USDC wallet.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.uiStyle(
                   fontSize: 14,
                   color: AppTheme.textSecondary,
                 ),
@@ -192,9 +186,9 @@ class _LoginScreenState extends State<LoginScreen> {
               // Email
               Text(
                 'Email Address',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.uiStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimary,
                 ),
               ),
@@ -202,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.email_outlined, color: AppTheme.textMuted, size: 20),
                   hintText: 'you@example.com',
@@ -212,9 +206,9 @@ class _LoginScreenState extends State<LoginScreen> {
               // Password
               Text(
                 'Password',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppTheme.uiStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimary,
                 ),
               ),
@@ -222,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textPrimary),
+                style: AppTheme.uiStyle(color: AppTheme.textPrimary),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted, size: 20),
                   hintText: '••••••••',
@@ -242,11 +236,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: authProvider.isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppTheme.brandBlack,
                   minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: const StadiumBorder(),
                   elevation: 0,
-                  shadowColor: AppTheme.primary.withValues(alpha: 0.3),
                 ),
                 child: authProvider.isLoading
                     ? const SizedBox(
@@ -254,15 +247,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: Colors.white,
+                          color: AppTheme.brandBlack,
                         ),
                       )
                     : Text(
                         'Sign In',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: AppTheme.uiStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.brandBlack),
                       ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               // Quick Demo Sign In
               OutlinedButton.icon(
                 onPressed: authProvider.isLoading
@@ -272,11 +265,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordController.text = 'password123';
                         _submit();
                       },
-                icon: const Icon(Icons.flash_on_rounded, color: AppTheme.primary, size: 20),
+                icon: const Icon(Icons.flash_on_rounded, color: AppTheme.primaryDark, size: 20),
                 label: Text(
                   'Quick Demo Login',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w700,
+                  style: AppTheme.uiStyle(
+                    fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
                     fontSize: 14,
                   ),
@@ -284,8 +277,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                   side: const BorderSide(color: AppTheme.border, width: 1.5),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: AppTheme.surfaceLow,
+                  shape: const StadiumBorder(),
                 ),
               ),
               const SizedBox(height: 28),
@@ -294,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     "Don't have an account? ",
-                    style: GoogleFonts.plusJakartaSans(color: AppTheme.textSecondary, fontSize: 13),
+                    style: AppTheme.uiStyle(color: AppTheme.textSecondary, fontSize: 13),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -305,8 +298,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: Text(
                       'Create Account',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: AppTheme.primary,
+                      style: AppTheme.uiStyle(
+                        color: AppTheme.primaryDark,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),

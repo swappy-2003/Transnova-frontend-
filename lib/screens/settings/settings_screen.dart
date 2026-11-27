@@ -186,14 +186,12 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // User Profile Banner Card
+              // User Profile Banner Card (Obsidian Hero Profile)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppTheme.border),
-                  boxShadow: AppTheme.cardShadow,
+                  color: AppTheme.brandBlack,
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
                   children: [
@@ -201,27 +199,17 @@ class SettingsScreen extends StatelessWidget {
                       width: 58,
                       height: 58,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF4B4B), Color(0xFFFA5252)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color: AppTheme.primary,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        border: Border.all(color: AppTheme.primaryLight, width: 2),
                       ),
                       child: Center(
                         child: Text(
-                          user?.displayName.isNotEmpty == true ? user!.displayName.substring(0, 1) : 'D',
-                          style: GoogleFonts.plusJakartaSans(
+                          user?.displayName.isNotEmpty == true ? user!.displayName.substring(0, 1).toUpperCase() : 'D',
+                          style: AppTheme.displayStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: AppTheme.brandBlack,
                           ),
                         ),
                       ),
@@ -233,33 +221,33 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             user?.displayName.isNotEmpty == true ? user!.displayName : 'Demo User',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textPrimary,
+                            style: AppTheme.displayStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             user?.email ?? 'demo@transnova.com',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppTheme.uiStyle(
                               fontSize: 13,
-                              color: AppTheme.textSecondary,
+                              color: AppTheme.darkSurfaceVariantText,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppTheme.accentLight,
-                              borderRadius: BorderRadius.circular(6),
+                              color: AppTheme.primaryLight,
+                              borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               'Verified Account',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.accent,
+                              style: AppTheme.uiStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.onPrimaryLight,
                               ),
                             ),
                           ),

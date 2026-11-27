@@ -23,8 +23,13 @@ class SendContact {
 
 class SendScreen extends StatefulWidget {
   final VoidCallback onTransferSuccess;
+  final ValueNotifier<String?>? scannedRecipientNotifier;
 
-  const SendScreen({super.key, required this.onTransferSuccess});
+  const SendScreen({
+    super.key,
+    required this.onTransferSuccess,
+    this.scannedRecipientNotifier,
+  });
 
   @override
   State<SendScreen> createState() => _SendScreenState();
@@ -39,6 +44,21 @@ class _SendScreenState extends State<SendScreen> {
   String? _recipientDisplayName;
   bool _isEstimatingFee = false;
   String _selectedFeeTier = 'medium';
+
+  @override
+  void initState() {
+    super.initState();
+    widget.scannedRecipientNotifier?.addListener(_onScannedRecipient);
+  }
+
+  void _onScannedRecipient() {
+    final val = widget.scannedRecipientNotifier?.value;
+    if (val != null && val.isNotEmpty) {
+      _addressController.text = val;
+      _validateRecipientAddress();
+      widget.scannedRecipientNotifier?.value = null;
+    }
+  }
 
   final List<SendContact> _recentContacts = const [
     SendContact(
@@ -65,6 +85,7 @@ class _SendScreenState extends State<SendScreen> {
 
   @override
   void dispose() {
+    widget.scannedRecipientNotifier?.removeListener(_onScannedRecipient);
     _addressController.dispose();
     _amountController.dispose();
     super.dispose();
@@ -267,231 +288,281 @@ class _SendScreenState extends State<SendScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (bottomSheetContext) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Figma Red Header: Transfer Confirmation with (X)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: const BoxDecoration(
-                color: AppTheme.primary,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Transfer Confirmation',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => Navigator.pop(bottomSheetContext),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Confirmation details
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-              child: Column(
-                children: [
-                  // Recipient info
-                  Container(
-                    padding: const EdgeInsets.all(14),
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F8FB),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.border),
+                      color: AppTheme.border,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryLight,
-                            shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Confirm Payment',
+                      style: AppTheme.displayStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.verified_user_rounded, size: 14, color: AppTheme.onPrimaryLight),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Verified',
+                            style: AppTheme.uiStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.onPrimaryLight,
+                            ),
                           ),
-                          child: Icon(
-                            isEmail ? Icons.email_rounded : Icons.account_balance_wallet_rounded,
-                            color: AppTheme.primary,
-                            size: 22,
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Obsidian Hero Summary Card (matching IntPay Confirm Payment template)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandBlack,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF191C19),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppTheme.primary, width: 2),
+                            ),
+                            child: Icon(
+                              isEmail ? Icons.email_rounded : Icons.account_balance_wallet_rounded,
+                              color: AppTheme.primary,
+                              size: 20,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isEmail ? 'Sending to email' : 'Sending to address',
+                                  style: AppTheme.uiStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.darkSurfaceVariantText,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _recipientDisplayName ?? (isEmail ? address : 'Polygon Amoy Wallet'),
+                                  style: AppTheme.uiStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  address,
+                                  style: AppTheme.monoStyle(
+                                    fontSize: 12,
+                                    color: AppTheme.darkSurfaceVariantText,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        child: Divider(height: 1, color: AppTheme.darkBorder),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isEmail ? 'Recipient Email' : 'Recipient Address',
-                                style: GoogleFonts.plusJakartaSans(
+                                'Total you pay',
+                                style: AppTheme.uiStyle(
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppTheme.textSecondary,
+                                  color: AppTheme.darkSurfaceVariantText,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                address,
-                                style: GoogleFonts.jetBrainsMono(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.textPrimary,
+                                '\$$amountText',
+                                style: AppTheme.displayStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Amount breakdown
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Amount to Send',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        '\$$amountText USDC',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Network Gas Fee',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        feeLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.accent,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Network',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        'Polygon Amoy',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 28, color: AppTheme.divider),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total Debit',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        '\$$amountText USDC',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Confirm button
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(bottomSheetContext);
-                      _executeTransfer(simulate: simulate);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.check_circle_outline_rounded, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          simulate ? 'Confirm Simulation' : 'Confirm & Transfer Now',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Recipient gets',
+                                style: AppTheme.uiStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.darkSurfaceVariantText,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$amountText USDC',
+                                style: AppTheme.displayStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Breakdown Card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceLow,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.border),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Transfer amount',
+                            style: AppTheme.uiStyle(fontSize: 14, color: AppTheme.textSecondary),
+                          ),
+                          Text(
+                            '\$$amountText USDC',
+                            style: AppTheme.uiStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Network gas fee',
+                            style: AppTheme.uiStyle(fontSize: 14, color: AppTheme.textSecondary),
+                          ),
+                          Text(
+                            feeLabel,
+                            style: AppTheme.uiStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Network',
+                            style: AppTheme.uiStyle(fontSize: 14, color: AppTheme.textSecondary),
+                          ),
+                          Text(
+                            'Polygon Amoy',
+                            style: AppTheme.uiStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(bottomSheetContext);
+                    _executeTransfer(simulate: simulate);
+                  },
+                  icon: const Icon(Icons.fingerprint_rounded, size: 20),
+                  label: Text(
+                    simulate ? 'Confirm Simulation • \$$amountText' : 'Authorize & Pay \$$amountText',
+                    style: AppTheme.uiStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.brandBlack,
                     ),
                   ),
-                ],
-              ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: AppTheme.brandBlack,
+                    minimumSize: const Size.fromHeight(52),
+                    shape: const StadiumBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pop(bottomSheetContext),
+                  child: Text(
+                    'Cancel transfer',
+                    style: AppTheme.uiStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -505,11 +576,11 @@ class _SendScreenState extends State<SendScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryLight : Colors.white,
-            borderRadius: BorderRadius.circular(14),
+            color: isSelected ? AppTheme.surfaceHigh : AppTheme.surfaceLow,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected ? AppTheme.primary : AppTheme.border,
-              width: isSelected ? 1.5 : 1,
+              width: isSelected ? 1.8 : 1,
             ),
           ),
           child: Column(
@@ -894,28 +965,28 @@ class _SendScreenState extends State<SendScreen> {
                 onPressed: txProvider.isLoading ? null : () => _showTransferConfirmation(simulate: false),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppTheme.brandBlack,
                   minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: const StadiumBorder(),
                   elevation: 0,
-                  shadowColor: AppTheme.primary.withValues(alpha: 0.35),
                 ),
                 child: txProvider.isLoading
                     ? const SizedBox(
                         height: 22,
                         width: 22,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                        child: CircularProgressIndicator(color: AppTheme.brandBlack, strokeWidth: 2.5),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.send_rounded, size: 20),
+                          const Icon(Icons.send_rounded, size: 19),
                           const SizedBox(width: 8),
                           Text(
                             'Confirm & Send',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
+                            style: AppTheme.uiStyle(
+                              fontSize: 15,
                               fontWeight: FontWeight.w700,
+                              color: AppTheme.brandBlack,
                             ),
                           ),
                         ],
@@ -929,7 +1000,7 @@ class _SendScreenState extends State<SendScreen> {
                 icon: const Icon(Icons.science_outlined, color: AppTheme.textSecondary, size: 18),
                 label: Text(
                   'Simulate Instant Transfer (Demo)',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppTheme.uiStyle(
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textSecondary,
                     fontSize: 13,
@@ -937,10 +1008,12 @@ class _SendScreenState extends State<SendScreen> {
                 ),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
+                  backgroundColor: AppTheme.surfaceLow,
                   side: const BorderSide(color: AppTheme.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: const StadiumBorder(),
                 ),
               ),
+              const SizedBox(height: 96),
             ],
           ),
         ),

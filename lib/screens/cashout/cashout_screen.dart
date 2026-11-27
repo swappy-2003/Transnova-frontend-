@@ -210,34 +210,23 @@ class _CashoutScreenState extends State<CashoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header Card
+              // Header Card (Obsidian + Reward Yellow icon badge)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF9F43), Color(0xFFFECA57)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFF9F43).withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  color: AppTheme.brandBlack,
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
                   children: [
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.rewardYellow,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.account_balance_rounded, color: Colors.white, size: 26),
+                      child: const Icon(Icons.account_balance_rounded, color: AppTheme.brandBlack, size: 24),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -246,18 +235,18 @@ class _CashoutScreenState extends State<CashoutScreen> {
                         children: [
                           Text(
                             'ACH Bank Payout',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                            style: AppTheme.displayStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Off-ramp USDC directly to your US checking or savings account.',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppTheme.uiStyle(
                               fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: AppTheme.darkSurfaceVariantText,
                             ),
                           ),
                         ],

@@ -138,34 +138,23 @@ class _BuyScreenState extends State<BuyScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Transak Partner Header
+              // Transak Partner Header (Obsidian + Green Accent)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00B894), Color(0xFF55EFC4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00B894).withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  color: AppTheme.brandBlack,
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
                   children: [
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.credit_card_rounded, color: Colors.white, size: 26),
+                      child: const Icon(Icons.credit_card_rounded, color: AppTheme.brandBlack, size: 24),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -174,18 +163,18 @@ class _BuyScreenState extends State<BuyScreen> {
                         children: [
                           Text(
                             'Instant On-Ramp',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                            style: AppTheme.displayStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Buy USDC with Credit Card or Apple Pay via Transak.',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppTheme.uiStyle(
                               fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: AppTheme.darkSurfaceVariantText,
                             ),
                           ),
                         ],
@@ -336,21 +325,21 @@ class _BuyScreenState extends State<BuyScreen> {
               // Buy via Transak Button
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _launchTransakWidget,
-                icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                icon: const Icon(Icons.open_in_new_rounded, size: 19),
                 label: Text(
                   'Continue with Transak',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16,
+                  style: AppTheme.uiStyle(
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
+                    color: AppTheme.brandBlack,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppTheme.brandBlack,
                   minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: const StadiumBorder(),
                   elevation: 0,
-                  shadowColor: AppTheme.primary.withValues(alpha: 0.35),
                 ),
               ),
               const SizedBox(height: 12),
@@ -358,22 +347,23 @@ class _BuyScreenState extends State<BuyScreen> {
               // Simulated Deposit (Instant Testnet Credit)
               OutlinedButton.icon(
                 onPressed: _isLoading ? null : _simulateDeposit,
-                icon: const Icon(Icons.bolt_rounded, color: AppTheme.accent, size: 20),
+                icon: const Icon(Icons.bolt_rounded, color: AppTheme.primaryDark, size: 20),
                 label: Text(
                   'Instant Simulated Deposit (Testnet)',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppTheme.uiStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppTheme.textPrimary,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   side: const BorderSide(color: AppTheme.border, width: 1.5),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: AppTheme.surfaceLow,
+                  shape: const StadiumBorder(),
                 ),
               ),
+              const SizedBox(height: 96),
             ],
           ),
         ),
